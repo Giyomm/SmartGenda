@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">SmartGenda</string>
+
+    <string name="calendar_title_activity_calendar">Calendrier</string>
+    <string name="calendar_add_event_image_desc">add event button</string>
+    <string name="calendar_next_event_title">Prochain évènement</string>
+
     <string name="title_activity_event">EventActivity</string>
+
 </resources>
