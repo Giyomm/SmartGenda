@@ -7,10 +7,47 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.agenda.ter.smartgenda.CalendarActivity">
+    tools:context="com.agenda.ter.smartgenda.CalendarActivity"
+    android:background="#e8f0f5">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Salut pour la troisieme fois !! " />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Calendrier"
+                android:id="@+id/textView"
+                android:textAlignment="center"
+                android:gravity="center_vertical" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:background="@drawable/button_plus_green"
+                android:id="@+id/imageButton"
+                android:onClick="goToEventActivity"/>
+
+        </LinearLayout>
+
+        <CalendarView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/calendarView" />
+
+    </LinearLayout>
+
 </RelativeLayout>
