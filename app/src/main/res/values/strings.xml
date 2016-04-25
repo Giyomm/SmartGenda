@@ -17,4 +17,9 @@
     <string name="title_activity_maps">Map</string>
     <string name="event_name_placholder">Entrez le nom...</string>
 
+    <!-- Strings de l'activité Map -->
+    <string name="maps_destination_edittext">La destination...</string>
+    <string name="maps_origine_edittext">Le départ...</string>
+    <string name="maps_chercher_bouton">Chercher</string>
+
 </resources>
