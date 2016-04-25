@@ -100,7 +100,8 @@
                 android:layout_width="84dp"
                 android:layout_height="32dp"
                 android:text="@string/carte_button"
-                android:id="@+id/carte_button_id" />
+                android:id="@+id/carte_button_id"
+                android:onClick="goToMapsActivity" />
         </LinearLayout>
 
 
