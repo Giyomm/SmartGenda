@@ -17,22 +17,25 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.9"
+            android:layout_weight="0.85"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/calendar_title_activity_calendar"
-            android:id="@+id/textView"
+            android:id="@+id/calendar_page_title_text_view_id"
             android:textAlignment="center"
             android:gravity="center_vertical" />
 
-        <ImageButton
+        <Button
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:contentDescription="@string/calendar_add_event_image_desc"
-            android:layout_weight="0.1"
-            android:background="@drawable/button_plus_green"
-            android:id="@+id/imageButton"
+            android:layout_weight="0.15"
+            android:text="@string/add"
+            android:textStyle="bold"
+            android:textSize="32sp"
+            android:id="@+id/add_event_button_id"
             android:onClick="goToEventActivity"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:background="#b0c429" />
 
     </LinearLayout>
 
@@ -48,7 +51,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="@string/calendar_next_event_title"
-            android:id="@+id/textView2"
+            android:id="@+id/next_event_text_view_id"
             android:gravity="center_horizontal"
             android:textColor="#eef4f6"
             android:textSize="22sp" />
@@ -57,7 +60,7 @@
 
     <CalendarView
         android:layout_width="match_parent"
-        android:id="@+id/calendarView"
+        android:id="@+id/calendar_view_id"
         android:layout_height="0dp"
         android:layout_weight="0.7" />
 
