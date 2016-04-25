@@ -3,8 +3,13 @@
 
     <string name="calendar_title_activity_calendar">Calendrier</string>
     <string name="calendar_add_event_image_desc">add event button</string>
-    <string name="calendar_next_event_title">Prochain évènement</string>
+    <string name="calendar_next_event_title">Prochain événement</string>
 
     <string name="title_activity_event">EventActivity</string>
+
+    <!-- String de l'avtivité EVENT -->
+    <string name="desc_event_textview">Déscription de l\'événement : </string>
+    <string name="date_event_textview">Date : </string>
+    <string name="date_picker_textview">votre date...</string>
 
 </resources>
