@@ -1,6 +1,8 @@
 package com.agenda.ter.smartgenda;
 
 import android.app.DatePickerDialog;
+import android.app.Notification;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -39,5 +41,11 @@ public class EventActivity extends AppCompatActivity {
 
     public void showDatePicker(View view) {
         dpd.show();
+    }
+
+
+    public void lol(View view) {
+        Intent intent = new Intent(this, NotificationActivity.class);
+        startActivity(intent);
     }
 }

@@ -11,5 +11,7 @@
     <string name="desc_event_textview">Déscription de l\'événement : </string>
     <string name="date_event_textview">Date : </string>
     <string name="date_picker_textview">votre date...</string>
+    <string name="lieu_event_textview">Lieu de l\'événement</string>
+    <string name="carte_button">Carte</string>
 
 </resources>
