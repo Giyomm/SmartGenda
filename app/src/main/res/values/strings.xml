@@ -1,19 +1,20 @@
 <resources>
     <string name="app_name">SmartGenda</string>
+    <string name="add">+</string>
 
+    <!-- Strings de l'activité Calendar -->
     <string name="calendar_title_activity_calendar">Calendrier</string>
     <string name="calendar_add_event_image_desc">add event button</string>
     <string name="calendar_next_event_title">Prochain évènement</string>
-    <string name="add">+</string>
 
+    <!-- Strings de l'activité Event -->
     <string name="title_activity_event">EventActivity</string>
-
-    <!-- String de l'avtivité EVENT -->
     <string name="desc_event_textview">Déscription de l\'événement : </string>
     <string name="date_event_textview">Date : </string>
     <string name="date_picker_textview">votre date...</string>
     <string name="lieu_event_textview">Lieu de l\'événement</string>
     <string name="carte_button">Carte</string>
     <string name="title_activity_maps">Map</string>
+    <string name="event_name_placholder">Entrez le nom...</string>
 
 </resources>
