@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -33,13 +34,20 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.agenda.ter.map.*;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener {
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
     private GoogleMap mMap;
     /**
@@ -47,6 +55,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
+    //LAT ET LNG
+    double latitude=0, longitude=0;
 
     // LES WIDGETS DE L'ACTIVITE MAPS
     Button chercherBtn;
@@ -101,11 +112,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void chercherItineraire(View v){
+    /*public void chercherItineraire(View v){
         sendRequest();
-    }
+    }*/
 
-    private void sendRequest(){
+    /*private void sendRequest(){
         String destination = destinationEditText.getText().toString();
         String depart = departEditText.getText().toString();
         if (depart.isEmpty()) {
@@ -122,9 +133,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
-    @Override
+   /* @Override
     public void onDirectionFinderStart() {
         progressDialog = ProgressDialog.show(this, "Please wait.",
                 "Finding direction..!", true);
@@ -146,9 +157,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 polyline.remove();
             }
         }
-    }
+    }*/
 
-    @Override
+   /* @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         progressDialog.dismiss();
         polylinePaths = new ArrayList<>();
@@ -179,25 +190,121 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
         }
-    }
+    }*/
 
-    // METHODE POUR CHERCHER UN LIEU ET RECUPERER LNG ET LAT
-    public void chercherLieu(View v){
-        String localisation = destinationEditText.getText().toString();
-        List<android.location.Address> adressList = null;
+    public void getLatLongFromPlace(String place) {
+        try {
+            Geocoder selected_place_geocoder = new Geocoder(this);
+            List<android.location.Address> address;
 
-        if(!localisation.equals("") || localisation!=null){
-            Geocoder geocoder = new Geocoder(this);
-            try {
-                adressList = geocoder.getFromLocationName(localisation,1);
-            } catch (IOException e) {
-                e.printStackTrace();
+            address = selected_place_geocoder.getFromLocationName(place, 5);
+
+            if (address == null) {
+                //d.dismiss();
+            } else {
+                android.location.Address location = address.get(0);
+                double lat= location.getLatitude();
+                double lng = location.getLongitude();
+                LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+                mMap.addMarker(new MarkerOptions().position(latLng).title(""));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                latitude = lat ; longitude = lng;
             }
 
-            android.location.Address adress = adressList.get(0);
-            LatLng latLng = new LatLng(adress.getLongitude(),adress.getLatitude());
-            mMap.addMarker(new MarkerOptions().position(latLng).title(""));
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void chercherLieu(View view) {
+        String dest = destinationEditText.getText().toString();
+        getLatLongFromPlace(dest);
+    }
+
+
+    //Sometimes happens that device gives location = null
+
+    public class fetchLatLongFromService extends
+            AsyncTask<Void, Void, StringBuilder> {
+        String place;
+
+
+        public fetchLatLongFromService(String place) {
+            super();
+            this.place = place;
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            // TODO Auto-generated method stub
+            super.onCancelled();
+            this.cancel(true);
+        }
+
+        @Override
+        protected StringBuilder doInBackground(Void... params) {
+            // TODO Auto-generated method stub
+            try {
+                HttpURLConnection conn = null;
+                StringBuilder jsonResults = new StringBuilder();
+                String googleMapUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
+                        + this.place + "&sensor=false";
+
+                URL url = new URL(googleMapUrl);
+                conn = (HttpURLConnection) url.openConnection();
+                InputStreamReader in = new InputStreamReader(
+                        conn.getInputStream());
+                int read;
+                char[] buff = new char[1024];
+                while ((read = in.read(buff)) != -1) {
+                    jsonResults.append(buff, 0, read);
+                }
+                String a = "";
+                return jsonResults;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(StringBuilder result) {
+            // TODO Auto-generated method stub
+            super.onPostExecute(result);
+            try {
+                JSONObject jsonObj = new JSONObject(result.toString());
+                JSONArray resultJsonArray = jsonObj.getJSONArray("results");
+
+                // Extract the Place descriptions from the results
+                // resultList = new ArrayList<String>(resultJsonArray.length());
+
+                JSONObject before_geometry_jsonObj = resultJsonArray
+                        .getJSONObject(0);
+
+                JSONObject geometry_jsonObj = before_geometry_jsonObj
+                        .getJSONObject("geometry");
+
+                JSONObject location_jsonObj = geometry_jsonObj
+                        .getJSONObject("location");
+
+                String lat_helper = location_jsonObj.getString("lat");
+                double lat = Double.valueOf(lat_helper);
+
+
+                String lng_helper = location_jsonObj.getString("lng");
+                double lng = Double.valueOf(lng_helper);
+
+
+                LatLng point = new LatLng(lat, lng);
+
+
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+
+            }
         }
     }
 }

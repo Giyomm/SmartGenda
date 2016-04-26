@@ -10,14 +10,14 @@ public class Event {
     private String mEventName;
     private Date mEventDate;
     private String mEventDescription;
-    private Meteo mEventMeteo;
+    private Location mEventLocation;
     private SmartNotification mEventNotification;
 
-    public Event(String mEventName, Date mEventDate, String mEventDescription, Meteo mEventMeteo, SmartNotification mEventNotification) {
+    public Event(String mEventName, Date mEventDate, String mEventDescription, Location mEventLocation, SmartNotification mEventNotification) {
         this.mEventName = mEventName;
         this.mEventDate = mEventDate;
         this.mEventDescription = mEventDescription;
-        this.mEventMeteo = mEventMeteo;
+        this.mEventLocation = mEventLocation;
         this.mEventNotification = mEventNotification;
     }
 
@@ -45,12 +45,12 @@ public class Event {
         this.mEventDescription = mEventDescription;
     }
 
-    public Meteo getmEventMeteo() {
-        return mEventMeteo;
+    public Location getmEventLocation() {
+        return mEventLocation;
     }
 
-    public void setmEventMeteo(Meteo mEventMeteo) {
-        this.mEventMeteo = mEventMeteo;
+    public void setmEventLocation(Location mEventLocation) {
+        this.mEventLocation = mEventLocation;
     }
 
     public SmartNotification getmEventNotification() {
