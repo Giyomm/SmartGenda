@@ -21,5 +21,6 @@
     <string name="maps_destination_edittext">La destination...</string>
     <string name="maps_origine_edittext">Le départ...</string>
     <string name="maps_chercher_bouton">Chercher</string>
+    <string name="maps_saveLocation_edittext">Sauvegarder</string>
 
 </resources>

@@ -18,6 +18,12 @@ public class Location {
         this.mMeteoIcon = mMeteoIcon;
     }
 
+    public Location(String mLocationName, Double mLocationLatitude, Double mLocationLongitude) {
+        this.mLocationName = mLocationName;
+        this.mLocationLatitude = mLocationLatitude;
+        this.mLocationLongitude = mLocationLongitude;
+    }
+
     public String getmLocationName() {
         return mLocationName;
     }

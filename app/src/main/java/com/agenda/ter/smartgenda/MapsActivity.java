@@ -2,46 +2,33 @@ package com.agenda.ter.smartgenda;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Geocoder;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.agenda.ter.map.DirectionFinderListener;
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.identity.intents.Address;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.agenda.ter.map.*;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,9 +46,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //LAT ET LNG
     double latitude=0, longitude=0;
 
+
+
     // LES WIDGETS DE L'ACTIVITE MAPS
-    Button chercherBtn;
-    EditText destinationEditText, departEditText;
+    Button chercherBtn, saveLocationEditText;
+    EditText destinationEditText;
 
     //JE SAIS PAS ENCORE
     private List<Marker> originMarkers = new ArrayList<>();
@@ -84,7 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // LES WIDGETS DE L'ACITIVTE MAPS
         chercherBtn = (Button)findViewById(R.id.maps_chercherLieu_bouton_id);
         destinationEditText = (EditText)findViewById(R.id.maps_destination_edittext_id);
-
+        saveLocationEditText = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
 
     }
 
@@ -192,6 +181,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }*/
 
+    // METHODE POUR CHERCHER UN LIEU
+    public void findLocation(View view) {
+        String dest = destinationEditText.getText().toString();
+        getLatLongFromPlace(dest);
+    }
+
     public void getLatLongFromPlace(String place) {
         try {
             Geocoder selected_place_geocoder = new Geocoder(this);
@@ -209,6 +204,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.addMarker(new MarkerOptions().position(latLng).title(""));
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                 latitude = lat ; longitude = lng;
+                Log.d("tag", "getLatLongFromPlace: " + latitude+ " , " +longitude);
             }
 
         } catch (Exception e) {
@@ -216,14 +212,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void chercherLieu(View view) {
-        String dest = destinationEditText.getText().toString();
-        getLatLongFromPlace(dest);
-    }
-
-
-    //Sometimes happens that device gives location = null
-
+    //QUAND LE LIEU TROUVE VAUT NULL
     public class fetchLatLongFromService extends
             AsyncTask<Void, Void, StringBuilder> {
         String place;
@@ -306,5 +295,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         }
+    }
+
+    // ENVOYER UNE LOCALISATION A EVENTSACTIVITY
+    public void saveLocation(View view) {
+        Intent intent = new Intent(this, EventActivity.class);
+        intent.putExtra(EventActivity.EXTRA_LATITUDE,latitude);
+        intent.putExtra(EventActivity.EXTRA_LONGITUDE,longitude);
+        intent.putExtra(EventActivity.EXTRA_LOCALISATION_NAME,destinationEditText.getText().toString());
+        setResult(RESULT_OK,intent);
+        finish();
     }
 }

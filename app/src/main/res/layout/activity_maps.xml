@@ -11,13 +11,20 @@
         android:hint="@string/maps_destination_edittext"/>
 
     <Button
-        android:onClick="chercherLieu"
+        android:onClick="findLocation"
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
         android:text="@string/maps_chercher_bouton"
         android:id="@+id/maps_chercherLieu_bouton_id" />
 
+
+    <Button
+        android:onClick="saveLocation"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:text="@string/maps_saveLocation_edittext"
+        android:id="@+id/maps_saveLocation_bouton_id" />
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
@@ -25,7 +32,7 @@
     android:id="@+id/map"
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="434dp"
     tools:context="com.agenda.ter.smartgenda.MapsActivity" />
 
 </LinearLayout>
