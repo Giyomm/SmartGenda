@@ -65,7 +65,9 @@ public class EventActivity extends AppCompatActivity {
         intentFromCalendar = getIntent();
         long dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
         Log.d("KDFPIFDIUFDF",""+dateSelected);
-        datepickertxtview.setText(""+dateSelected);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String dateString = formatter.format(new Date(dateSelected));
+        datepickertxtview.setText(""+dateString);
 
     }
 
