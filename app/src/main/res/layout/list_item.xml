@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/reminder_list_text_view"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_gravity="left"
+        android:layout_weight="0.85"
+        android:gravity="center_vertical" />
+
+    <Button
+        android:id="@+id/reminder_list_delete_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.15"
+        android:text="X"
+        android:background="#f96a6a"
+        android:layout_gravity="right" />
+
+</LinearLayout>
