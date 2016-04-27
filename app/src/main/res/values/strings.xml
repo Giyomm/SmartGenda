@@ -6,6 +6,13 @@
     <string name="calendar_title_activity_calendar">Calendrier</string>
     <string name="calendar_add_event_image_desc">add event button</string>
     <string name="calendar_next_event_title">Prochain évènement</string>
+    <string name="calendar_day_monday">LUN</string>
+    <string name="calendar_day_tuesday">MAR</string>
+    <string name="calendar_day_wenesday">MER</string>
+    <string name="calendar_day_thursday">JEU</string>
+    <string name="calendar_day_friday">VEN</string>
+    <string name="calendar_day_saturday">SAM</string>
+    <string name="calendar_day_sunday">DIM</string>
 
     <!-- Strings de l'activité Event -->
     <string name="event_title_activity">Evénement</string>

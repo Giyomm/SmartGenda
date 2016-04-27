@@ -58,10 +58,11 @@
 
     </LinearLayout>
 
-    <CalendarView
+    <com.agenda.ter.smartgenda.CalendarView
+        xmlns:calendarNS="http://schemas.android.com/apk/res/com.agenda.ter.smartgenda"
+        android:id="@+id/calendar_view"
         android:layout_width="match_parent"
-        android:id="@+id/calendar_view_id"
-        android:layout_height="0dp"
-        android:layout_weight="0.7" />
+        android:layout_height="wrap_content"
+        calendarNS:dateFormat="MMMM yyyy"/>
 
 </LinearLayout>
