@@ -12,10 +12,22 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="20dp">
+        android:layout_height="match_parent">
 
         <TextView
+
+            android:layout_marginBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/event_title_activity"
+            android:id="@+id/event_page_title_text_view_id"
+            android:textAlignment="center"
+            android:gravity="center_vertical"
+            android:background="#b0c429" />
+
+        <TextView
+            android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
@@ -36,6 +48,7 @@
             android:layout_marginBottom="20dp">
 
             <TextView
+                android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="20dp"
@@ -61,7 +74,41 @@
                 android:id="@+id/date_even_butonimage_id" />
         </LinearLayout>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/event_houre_text_view"
+                android:id="@+id/event_hour_text_view_id"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:layout_marginLeft="20dp"
+                android:textSize="15dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:hint="@string/event_houre_picker_text_view"
+                android:id="@+id/event_hourpicker_textview_id" />
+
+            <ImageButton
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:background="@mipmap/ic_clock"
+                android:onClick="showTimePicker"
+                android:id="@+id/event_hourpicker_image_buton_id" />
+
+        </LinearLayout>
+
         <TextView
+            android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
@@ -75,13 +122,6 @@
             android:layout_marginBottom="20dp"
             android:id="@+id/desc_even_edittextt_id" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="NOTIF"
-            android:onClick="goToNotificationPage"
-            android:id="@+id/notif" />
-
         <LinearLayout
             android:layout_marginBottom="20dp"
             android:orientation="horizontal"
@@ -89,6 +129,7 @@
             android:layout_height="wrap_content">
 
             <TextView
+                android:textStyle="bold"
                 android:layout_weight="0.7"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -96,11 +137,11 @@
                 android:text="@string/lieu_event_textview"
                 android:id="@+id/lieu_event_textview_id" />
 
-            <Button
-                style="?android:attr/buttonStyleSmall"
-                android:layout_weight="0.3"
-                android:layout_width="0dp"
-                android:layout_height="32dp"
+            <ImageButton
+                android:background="@mipmap/ic_map"
+                android:layout_width="50dp"
+                android:layout_height="30dp"
+                android:layout_marginRight="30dp"
                 android:text="@string/carte_button"
                 android:id="@+id/carte_button_id"
                 android:onClick="goToMapsActivity" />
@@ -108,14 +149,50 @@
         </LinearLayout>
 
         <TextView
+            android:layout_marginBottom="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Medium Text"
-            android:id="@+id/event_location_texteview_id"
-            android:layout_gravity="center_horizontal" />
+            android:text="@string/event_location_text_view"
+            android:id="@+id/event_location_texteview_id"/>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="90dp">
 
+                <TextView
+                    android:textStyle="bold"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/event_notification_text_view"
+                    android:id="@+id/event_notification_texteview_id"/>
+
+                <Spinner
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner"/>
+
+            <Button
+                android:text="@string/add"
+                android:textStyle="bold"
+                android:textSize="32sp"
+                android:id="@+id/add_notification_button_id"
+                android:onClick="goToNotificationPage"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:background="#b0c429"/>
+
+        </LinearLayout>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"
+            android:text="@string/maps_saveLocation_edittext"
+            android:id="@+id/event_saveEvent_bouton_id"
+            android:background="#b0c429" />
     </LinearLayout>
 
 </ScrollView>

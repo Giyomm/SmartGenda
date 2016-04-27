@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
@@ -13,6 +14,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.agenda.ter.map.DirectionFinder;
+import com.agenda.ter.map.DirectionFinderListener;
+import com.agenda.ter.map.Route;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,8 +30,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -49,8 +58,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     // LES WIDGETS DE L'ACTIVITE MAPS
-    Button chercherBtn, saveLocationEditText;
-    EditText destinationEditText;
+    Button chercherBtn, saveLocationButon;
+    EditText destinationEditText, departEditText;
 
     //JE SAIS PAS ENCORE
     private List<Marker> originMarkers = new ArrayList<>();
@@ -73,7 +82,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // LES WIDGETS DE L'ACITIVTE MAPS
         chercherBtn = (Button)findViewById(R.id.maps_chercherLieu_bouton_id);
         destinationEditText = (EditText)findViewById(R.id.maps_destination_edittext_id);
-        saveLocationEditText = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
+        departEditText= (EditText) findViewById(R.id.maps_origin_edittext_id);
+        saveLocationButon = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
+        saveLocationButon.setEnabled(false);
 
     }
 
@@ -81,11 +92,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        LatLng marseille = new LatLng(43.300797, 5.376978);
-        mMap.addMarker(new MarkerOptions().position(marseille).title(""));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marseille,5));
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -101,33 +107,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    /*public void chercherItineraire(View v){
-        sendRequest();
-    }*/
+    public void chercherItineraire(View v){
+        sendRequest(); saveLocationButon.setEnabled(true);
+    }
 
-    /*private void sendRequest(){
+    private void sendRequest(){
         String destination = destinationEditText.getText().toString();
         String depart = departEditText.getText().toString();
         if (depart.isEmpty()) {
-            Toast.makeText(this, "Please enter origin address!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Entrez une adresse de départ!", Toast.LENGTH_SHORT).show();
             return;
         }
         if (destination.isEmpty()) {
-            Toast.makeText(this, "Please enter destination address!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Entrez une destination!", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            new DirectionFinder(this, depart, destination).execute();
+            new DirectionFinder(new DirectionFinderListener() {
+                @Override
+                public void onDirectionFinderStart() {
+                    MapsActivity.this.onDirectionFinderStart();
+                }
+
+                @Override
+                public void onDirectionFinderSuccess(List<Route> route) {
+                    MapsActivity.this.onDirectionFinderSuccess(route);
+                }
+            }, depart, destination).execute();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 
-   /* @Override
     public void onDirectionFinderStart() {
-        progressDialog = ProgressDialog.show(this, "Please wait.",
-                "Finding direction..!", true);
+        progressDialog = ProgressDialog.show(this, "Patience",
+                "Trouver la direction..!", true);
 
         if (originMarkers != null) {
             for (Marker marker : originMarkers) {
@@ -146,9 +161,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 polyline.remove();
             }
         }
-    }*/
+    }
 
-   /* @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         progressDialog.dismiss();
         polylinePaths = new ArrayList<>();
@@ -157,8 +171,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         for (Route route : routes) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
-            //((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
-            //((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
+            ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
+            ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
 
             originMarkers.add(mMap.addMarker(new MarkerOptions()
                    // .icon(BitmapDescriptorFactory.fromResource(R.drawable.start_blue))
@@ -179,13 +193,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
         }
-    }*/
-
-    // METHODE POUR CHERCHER UN LIEU
-    public void findLocation(View view) {
-        String dest = destinationEditText.getText().toString();
-        getLatLongFromPlace(dest);
     }
+
 
     public void getLatLongFromPlace(String place) {
         try {
@@ -299,6 +308,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // ENVOYER UNE LOCALISATION A EVENTSACTIVITY
     public void saveLocation(View view) {
+        getLatLongFromPlace(destinationEditText.getText().toString());
         Intent intent = new Intent(this, EventActivity.class);
         intent.putExtra(EventActivity.EXTRA_LATITUDE,latitude);
         intent.putExtra(EventActivity.EXTRA_LONGITUDE,longitude);
@@ -306,4 +316,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setResult(RESULT_OK,intent);
         finish();
     }
+
+
 }
