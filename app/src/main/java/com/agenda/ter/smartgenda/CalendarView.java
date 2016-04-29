@@ -1,16 +1,23 @@
 package com.agenda.ter.smartgenda;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 
 /**
  * Created by Giyomm on 27/04/2016.
@@ -123,6 +131,15 @@ public class CalendarView extends LinearLayout
 
     private void assignClickHandlers()
     {
+        txtDate.setOnLongClickListener(new OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v) {
+                showDialogDateSelector();
+                return true;
+            }
+        });
+
         // add one month and refresh UI
         btnNext.setOnClickListener(new OnClickListener()
         {
@@ -196,7 +213,7 @@ public class CalendarView extends LinearLayout
         grid.setAdapter(new CalendarAdapter(getContext(), cells, events));
 
         // update title
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.FRANCE);
         txtDate.setText(sdf.format(currentDate.getTime()));
 
         // set header color according to current season
@@ -204,7 +221,7 @@ public class CalendarView extends LinearLayout
         int season = monthSeason[month];
         int color = rainbow[season];
 
-        header.setBackgroundColor(getResources().getColor(color));
+        header.setBackgroundColor(ContextCompat.getColor(getContext(), color));
     }
 
 
@@ -255,27 +272,44 @@ public class CalendarView extends LinearLayout
                     }
                 }
             }
+            //Get the cell view
+            TextView cell = ((TextView)view);
 
-            // clear styling
-            ((TextView)view).setTypeface(null, Typeface.NORMAL);
-            ((TextView)view).setTextColor(Color.BLACK);
+            //clear styling
+            cell.setTypeface(null, Typeface.NORMAL);
+            cell.setTextColor(Color.BLACK);
 
-            if (month != today.getMonth() || year != today.getYear())
+            //grey out all days before the current day
+            if (    year < today.getYear() ||
+                    month < today.getMonth() && year <= today.getYear() ||
+                    day < today.getDate() && month == today.getMonth() && year <= today.getYear())
             {
-                // if this day is outside current month, grey it out
-                ((TextView)view).setTextColor(getResources().getColor(R.color.greyed_out));
+
+                cell.setTextColor(ContextCompat.getColor(getContext(),R.color.greyed_out));
             }
-            else if (day == today.getDate())
+            //set the color of the current day at blue and style as bold
+            else if (day == today.getDate() && month == today.getMonth() && year == today.getYear())
             {
-                // if it is today, set it to blue/bold
-                ((TextView)view).setTypeface(null, Typeface.BOLD);
-                ((TextView)view).setTextColor(getResources().getColor(R.color.today));
+                cell.setTypeface(null, Typeface.BOLD);
+                cell.setTextColor(ContextCompat.getColor(getContext(),R.color.today));
             }
 
-            // set text
-            ((TextView)view).setText(String.valueOf(date.getDate()));
+            if(position >= monthBeginningCell() && position <= monthBeginningCell()+ getMonthNumberOfDays() -1)
+                cell.setText(String.valueOf(date.getDate()));
+            else
+                cell.setText(" ");
 
             return view;
+        }
+
+        @Override
+        public boolean areAllItemsEnabled() {
+            return false;
+        }
+
+        @Override
+        public boolean isEnabled(int position) {
+            return (position >= monthBeginningCell() && position <= monthBeginningCell()+ getMonthNumberOfDays() -1);
         }
     }
 
@@ -294,5 +328,30 @@ public class CalendarView extends LinearLayout
     public interface EventHandler
     {
         void onDayLongPress(Date date);
+    }
+
+    public int monthBeginningCell(){
+        Calendar calendar = (Calendar)currentDate.clone();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return calendar.get(Calendar.DAY_OF_WEEK) - 1;
+    }
+
+    public int getMonthNumberOfDays(){
+        Calendar calendar = (Calendar)currentDate.clone();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    public void showDialogDateSelector(){
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog dpd = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                currentDate.set(Calendar.MONTH,monthOfYear);
+                currentDate.set(Calendar.YEAR,year);
+                updateCalendar();
+            }
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        dpd.show();
     }
 }

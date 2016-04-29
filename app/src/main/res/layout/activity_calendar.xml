@@ -62,7 +62,8 @@
         xmlns:calendarNS="http://schemas.android.com/apk/res/com.agenda.ter.smartgenda"
         android:id="@+id/calendar_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="0.7"
         calendarNS:dateFormat="MMMM yyyy"/>
 
 </LinearLayout>
