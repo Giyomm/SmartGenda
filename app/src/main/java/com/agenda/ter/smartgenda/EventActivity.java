@@ -24,6 +24,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.app.DialogFragment;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.agenda.ter.model.Location;
 
@@ -32,14 +33,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class EventActivity extends AppCompatActivity {
 
     public DatePickerDialog dpd;
+    EditText nameEvent;
     TextView locationLatLngTextView;
     ImageButton datepick;
     EditText desc_even;
+    static TextView tv;
+    Button saveEventButton;
+    TextView datepickertxtview;
 
     private CalendarView calendar2;
     private Date selectedDate;
@@ -55,23 +61,32 @@ public class EventActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event);
 
         datepick = (ImageButton) findViewById(R.id.date_even_butonimage_id);
         desc_even = (EditText) findViewById(R.id.desc_even_edittextt_id);
-        locationLatLngTextView = (TextView) findViewById(R.id.event_location_texteview_id);
-        TextView datepickertxtview = (TextView) findViewById(R.id.datepicker_textview_id);
+        nameEvent = (EditText) findViewById(R.id.nom_even_edittext_id);
+        locationLatLngTextView = (TextView) findViewById(R.id.event_location_texteview_id);String aa = locationLatLngTextView.getText().toString();
+        datepickertxtview = (TextView) findViewById(R.id.datepicker_textview_id);
+         tv = (TextView) findViewById(R.id.event_hourpicker_textview_id);
+        saveEventButton = (Button)findViewById(R.id.event_saveEvent_bouton_id);
 
         Calendar calendar = Calendar.getInstance();
         dpd = new DatePickerDialog(EventActivity.this, new DatePickerDialog.OnDateSetListener() {
-            TextView datepickertxtview = (TextView) findViewById(R.id.datepicker_textview_id);
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 datepickertxtview.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        DatePicker dp = dpd.getDatePicker();
+        dp.setMinDate(calendar.getTimeInMillis());
+        calendar.add(Calendar.DAY_OF_MONTH,Integer.MAX_VALUE);
+        dp.setMaxDate(calendar.getTimeInMillis());
 
         intentFromCalendar = getIntent();
         long dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
@@ -90,6 +105,8 @@ public class EventActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
+
+
 
     }
 
@@ -146,22 +163,30 @@ public class EventActivity extends AppCompatActivity {
 
         //onTimeSet() callback method
         public void onTimeSet(TimePicker view, int hourOfDay, int minute){
-            TextView tv = (TextView) getActivity().findViewById(R.id.event_hourpicker_textview_id);
-            //Set a message for user
-            //tv.setText("Your chosen time is...\n\n");
-            //Display the user changed time on TextView
-           // tv.setText(tv.getText()+ "Hour : " + String.valueOf(hourOfDay)
-             //       + "\nMinute : " + String.valueOf(minute) + "\n");
             tv.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
-
         }
     }
 
 
-    //SPINNEEEEEEEEEEEEEEEEEEEEEER
-
-
-
+    public void saveEvent(View v){
+        if(nameEvent.getText().toString()==null || nameEvent.getText().toString().equals("")){
+            Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(datepickertxtview.getText().toString()==null || datepickertxtview.getText().toString().equals("")){
+            Toast.makeText(this, "Entrez une date !", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(tv.getText().toString()==null || tv.getText().toString().equals("")){
+            Toast.makeText(this, "Entrez l'heure !",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Log.d("DEST",locationLatLngTextView.getText().toString());
+        if(locationLatLngTextView.getText().toString()==null || locationLatLngTextView.getText().toString().equals("")){
+            Toast.makeText(this, "Entrez le lieu !",Toast.LENGTH_SHORT).show();
+            return;
+        }
+    }
 
 
 }

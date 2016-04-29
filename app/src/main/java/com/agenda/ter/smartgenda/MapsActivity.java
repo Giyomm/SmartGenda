@@ -2,10 +2,15 @@ package com.agenda.ter.smartgenda;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -32,18 +37,21 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     /**
@@ -53,13 +61,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient client;
 
     //LAT ET LNG
-    double latitude=0, longitude=0;
-
+    double latitude = 0, longitude = 0;
 
 
     // LES WIDGETS DE L'ACTIVITE MAPS
     Button chercherBtn, saveLocationButon;
     EditText destinationEditText, departEditText;
+
+    private LocationManager locationManager;
+    private String provider;
+
 
     //JE SAIS PAS ENCORE
     private List<Marker> originMarkers = new ArrayList<>();
@@ -80,11 +91,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
         // LES WIDGETS DE L'ACITIVTE MAPS
-        chercherBtn = (Button)findViewById(R.id.maps_chercherLieu_bouton_id);
-        destinationEditText = (EditText)findViewById(R.id.maps_destination_edittext_id);
-        departEditText= (EditText) findViewById(R.id.maps_origin_edittext_id);
+        chercherBtn = (Button) findViewById(R.id.maps_chercherLieu_bouton_id);
+        destinationEditText = (EditText) findViewById(R.id.maps_destination_edittext_id);
+        departEditText = (EditText) findViewById(R.id.maps_origin_edittext_id);
         saveLocationButon = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
-        saveLocationButon.setEnabled(false);
+
 
     }
 
@@ -104,8 +115,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMyLocationEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-    }
 
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
+
+            @Override
+            public boolean onMyLocationButtonClick() {
+                //double longitudeLocation = mMap.getMyLocation().getLongitude();
+                //double latitudeLocation = mMap.getMyLocation().getLatitude();
+                //Log.d("LOCATION", "location : "+  mMap.getMyLocation().getLatitude()+ " , "+mMap.getMyLocation().getLongitude());
+                Log.d("Location par def", "" + mMap.getMyLocation());
+                try {
+                    departEditText.setText(mMap.getMyLocation().getLatitude() + " , " + mMap.getMyLocation().getLongitude());
+                    LatLng latlng = new LatLng(mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,10.0f));
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "Attente de géolocalisation. Pensez à activer votre GPS...", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });
+    }
 
     public void chercherItineraire(View v){
         sendRequest(); saveLocationButon.setEnabled(true);
@@ -170,7 +199,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         destinationMarkers = new ArrayList<>();
 
         for (Route route : routes) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 5));
             ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
             ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
 
@@ -221,100 +250,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    //QUAND LE LIEU TROUVE VAUT NULL
-    public class fetchLatLongFromService extends
-            AsyncTask<Void, Void, StringBuilder> {
-        String place;
-
-
-        public fetchLatLongFromService(String place) {
-            super();
-            this.place = place;
-
-        }
-
-        @Override
-        protected void onCancelled() {
-            // TODO Auto-generated method stub
-            super.onCancelled();
-            this.cancel(true);
-        }
-
-        @Override
-        protected StringBuilder doInBackground(Void... params) {
-            // TODO Auto-generated method stub
-            try {
-                HttpURLConnection conn = null;
-                StringBuilder jsonResults = new StringBuilder();
-                String googleMapUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
-                        + this.place + "&sensor=false";
-
-                URL url = new URL(googleMapUrl);
-                conn = (HttpURLConnection) url.openConnection();
-                InputStreamReader in = new InputStreamReader(
-                        conn.getInputStream());
-                int read;
-                char[] buff = new char[1024];
-                while ((read = in.read(buff)) != -1) {
-                    jsonResults.append(buff, 0, read);
-                }
-                String a = "";
-                return jsonResults;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-
-        }
-
-        @Override
-        protected void onPostExecute(StringBuilder result) {
-            // TODO Auto-generated method stub
-            super.onPostExecute(result);
-            try {
-                JSONObject jsonObj = new JSONObject(result.toString());
-                JSONArray resultJsonArray = jsonObj.getJSONArray("results");
-
-                // Extract the Place descriptions from the results
-                // resultList = new ArrayList<String>(resultJsonArray.length());
-
-                JSONObject before_geometry_jsonObj = resultJsonArray
-                        .getJSONObject(0);
-
-                JSONObject geometry_jsonObj = before_geometry_jsonObj
-                        .getJSONObject("geometry");
-
-                JSONObject location_jsonObj = geometry_jsonObj
-                        .getJSONObject("location");
-
-                String lat_helper = location_jsonObj.getString("lat");
-                double lat = Double.valueOf(lat_helper);
-
-
-                String lng_helper = location_jsonObj.getString("lng");
-                double lng = Double.valueOf(lng_helper);
-
-
-                LatLng point = new LatLng(lat, lng);
-
-
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-
-            }
-        }
-    }
-
     // ENVOYER UNE LOCALISATION A EVENTSACTIVITY
     public void saveLocation(View view) {
-        getLatLongFromPlace(destinationEditText.getText().toString());
-        Intent intent = new Intent(this, EventActivity.class);
-        intent.putExtra(EventActivity.EXTRA_LATITUDE,latitude);
-        intent.putExtra(EventActivity.EXTRA_LONGITUDE,longitude);
-        intent.putExtra(EventActivity.EXTRA_LOCALISATION_NAME,destinationEditText.getText().toString());
-        setResult(RESULT_OK,intent);
-        finish();
+        if(destinationEditText.getText().toString()==null || destinationEditText.getText().toString().equals("")){
+            Toast.makeText(this, "Entrez une destination !", Toast.LENGTH_SHORT).show();
+            return;
+        }else {
+            getLatLongFromPlace(destinationEditText.getText().toString());
+            Intent intent = new Intent(this, EventActivity.class);
+            intent.putExtra(EventActivity.EXTRA_LATITUDE, latitude);
+            intent.putExtra(EventActivity.EXTRA_LONGITUDE, longitude);
+            intent.putExtra(EventActivity.EXTRA_LOCALISATION_NAME, destinationEditText.getText().toString());
+            setResult(RESULT_OK, intent);
+            finish();
+        }
     }
 
 
