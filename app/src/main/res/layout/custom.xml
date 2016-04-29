@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/listView1"
+    android:layout_width="fill_parent"
+    android:layout_height="467dp"
+    android:background="#eef0e7"
+    android:layout_weight="0.58"
+
+    android:clickable="true">
+
+
+</ListView>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:background="#eef0e7"
+        android:gravity="center_vertical"
+        android:layout_margin="0dp"
+        android:textAlignment="center">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="31dp"
+            android:text="Annuler"
+            android:id="@+id/button"
+            android:layout_marginLeft="40dp"
+            android:background="@drawable/my_button_bg"
+            android:onClick="CloseSonWindow"
+            />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="31dp"
+            android:text="Ok"
+            android:id="@+id/button2"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/my_button_bg"
+            android:layout_marginRight="40dp"
+            android:onClick="GetSon" />
+    </LinearLayout>
+</LinearLayout>

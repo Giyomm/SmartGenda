@@ -41,4 +41,20 @@
         <item>Urgente</item>
     </string-array>
 
+    <!-- String Notification -->
+    <string name="notif_title_activity">Notification</string>
+    <string name="Notification_name_textview">Nom de la notification</string>
+    <string name="Enter_nom_editText">Enter le nom</string>
+    <string name="code_couleur_textView"> Code couleur </string>
+    <string name="sonnerie_textView">Sonnerie</string>
+    <string name="rechercher_button">Rechercher</string>
+    <string name="rappel_textView">Rappels</string>
+    <string name="nouveau_rappel_textView">Nouveau Rappel</string>
+    <string name="add_button">+</string>
+    <string name="date_textView">Date</string>
+    <string name="votre_date_textView">Votre date</string>
+    <string name="heure_textView">Heure</string>
+    <string name="heure_editText" />
+    <string name="enregistrer_button">Enregistrer</string>
+
 </resources>

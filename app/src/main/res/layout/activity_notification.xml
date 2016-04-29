@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.agenda.ter.smartgenda.NotificationActivity"
-    android:background="#e8f0f5">
+    tools:context="com.agenda.ter.smartgenda.EventActivity"
+    android:padding="16dp"
+    android:fillViewport="false">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:weightSum="1"
-        android:padding="15dp">
+        android:layout_height="match_parent">
+
+        <TextView
+
+            android:layout_marginBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/notif_title_activity"
+            android:id="@+id/event_page_title_text_view_id"
+            android:textAlignment="center"
+            android:gravity="center_vertical"
+            android:background="#b0c429" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -23,7 +32,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
-                android:text="Nom de la notification "
+                android:text="@string/Notification_name_textview"
+                android:textStyle="bold"
                 android:id="@+id/nom_notif_id"
                 android:height="20dp"
                 android:textSize="20dp"
@@ -36,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/editText_nomNotif_id"
-            android:hint="Enter le nom"
+            android:hint="@string/Enter_nom_editText"
             android:layout_marginBottom="10dp"
 
             />
@@ -44,12 +54,14 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="57dp">
+            android:layout_height="57dp"
+            android:layout_weight="10.03">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Code couleur"
+                android:text="@string/code_couleur_textView"
+                android:textStyle="bold"
                 android:id="@+id/textView_code_couleur_id"
                 android:textSize="20dp"
 
@@ -59,53 +71,60 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="49dp">
+            android:layout_height="30dp"
+            android:weightSum="1">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sonnerie"
+                android:text="@string/sonnerie_textView"
+                android:textStyle="bold"
                 android:id="@+id/textView_sonnerie_id"
                 android:textSize="20dp"
                 android:layout_marginRight="30dp"
-                android:layout_weight="5"
 
                 />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chercher"
+                android:text="@string/rechercher_button"
                 android:id="@+id/button_chercher_id"
-                android:background="#cce0ef"
-                android:layout_weight="5"
-                />
+                android:onClick="browseAudioFiles"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/my_button_bg"
+                android:layout_weight="0.07"
+                android:textSize="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aucune"
+                android:id="@+id/textView" />
 
         </LinearLayout>
 
         <TextView
             android:layout_width="120dp"
             android:layout_height="wrap_content"
-            android:text="Rappels"
+            android:text="@string/rappel_textView"
+            android:textStyle="bold"
             android:id="@+id/textView_rappel_id"
             android:layout_weight="0.1"
             android:textSize="20dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="10dp"/>
 
-            />
 
         <ListView
             android:layout_width="wrap_content"
-            android:layout_height="88dp"
+            android:layout_height="100dp"
             android:id="@+id/listView_id"
-            android:layout_marginBottom="10dp"
             android:layout_weight="0.15"
-
+            android:scrollbars="vertical"
             />
-
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="127dp"
+            android:layout_height="170dp"
             android:layout_weight="0.58"
             android:background="@color/dim_foreground_disabled_material_dark"
             android:layout_marginBottom="10dp"
@@ -122,7 +141,8 @@
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_gravity="center_horizontal"
-                    android:layout_height="36dp">
+                    android:layout_height="36dp"
+                    android:layout_marginBottom="15dp">
 
                     <TextView
                         android:layout_width="0dp"
@@ -132,7 +152,7 @@
                         android:id="@+id/calendar_page_title_text_view_id"
 
                         android:gravity="center_vertical"
-                        android:text="Nouveau Rappel"
+                        android:text="@string/nouveau_rappel_textView"
                         android:textSize="20dp" />
 
                     <Button
@@ -172,7 +192,8 @@
                         android:textSize="15dp"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:hint="@string/date_picker_textview"
-                        android:id="@+id/datepicker_textview_id" />
+                        android:id="@+id/datepicker_textview_id"
+                        android:text="@string/votre_date_textView" />
 
                     <ImageButton
                         android:layout_width="31dp"
@@ -186,24 +207,32 @@
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="3dp">
+                    android:layout_height="match_parent">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Heure"
+                        android:text="@string/heure_textView"
                         android:id="@+id/textView_heure_id"
                         android:textSize="18dp"
-                        android:layout_marginRight="40dp"
+                        android:layout_marginRight="20dp"
                         />
-
-                    <EditText
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:inputType="time"
-                        android:ems="10"
+                        android:layout_marginRight="30dp"
+                        android:layout_marginLeft="20dp"
+                        android:textSize="15dp"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:hint="@string/event_houre_picker_text_view"
                         android:id="@+id/editText_heure_id" />
+
+                    <ImageButton
+                        android:layout_width="31dp"
+                        android:layout_height="31dp"
+                        android:background="@mipmap/ic_clock"
+                        android:onClick="showTimePicker"
+                        android:id="@+id/event_hourpicker_image_buton_id" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -213,10 +242,12 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Enregister"
+            android:text="@string/enregistrer_button"
             android:id="@+id/button_enregister_id"
-            android:background="#b0c429" />
+            android:background="#b0c429"
+            android:layout_weight="2.75" />
+
 
     </LinearLayout>
 
-</RelativeLayout>
+</ScrollView>

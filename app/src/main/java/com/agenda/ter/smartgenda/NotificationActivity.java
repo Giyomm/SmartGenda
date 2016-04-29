@@ -1,13 +1,26 @@
 package com.agenda.ter.smartgenda;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -17,18 +30,27 @@ import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class NotificationActivity extends AppCompatActivity {
 
     public DatePickerDialog dpd;
+    AlertDialog alertDialog;
 
     public ArrayList<String> list;
-    public MyCustomAdapter adapter;
-    public EditText txtInput;
+    public  MyCustomAdapter adapter;
+    public TextView txtInput;
+
+    private ArrayList<HashMap<String, String>> songsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +58,7 @@ public class NotificationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification);
 
         ListView listView = (ListView) findViewById(R.id.listView_id);
-        txtInput = (EditText) findViewById(R.id.editText_heure_id);
+        txtInput = (TextView) findViewById(R.id.editText_heure_id);
 
         list = new ArrayList<String>();
         adapter = new MyCustomAdapter(list, this);
@@ -57,19 +79,162 @@ public class NotificationActivity extends AppCompatActivity {
 
         // Fin_DatePicker
 
+
     }
 
     public void showDatePicker(View view) {
         dpd.show();
     }
 
-    public void AddToList(View v) {
-        String newItem = txtInput.getText().toString();
-        list.add("Rappel "+list.size()+" : "+newItem);
-        adapter.notifyDataSetChanged();
+
+    public void showTimePicker(View v){
+        DialogFragment newFragment = new TimePickerFragment();
+        newFragment.show(getFragmentManager(),"TimePicker");
     }
 
-    public void testListView (View v){
+    public void saveNotification(View view) {
+
+        EditText nameEditText= (EditText) findViewById(R.id.editText_nomNotif_id); String name = nameEditText.getText().toString();
+        TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = nameEditText.getText().toString();
+        String heure = txtInput.getText().toString();
+
+        if(name == "" || date == "" || heure == "") Toast.makeText(getApplicationContext(), " Remplir tout les champs !!", Toast.LENGTH_SHORT).show();
+
+        else{
+            Toast.makeText(getApplicationContext(), "Notification enegistrer avec succée ", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void CloseSonWindow(View view) {
+
+        alertDialog.dismiss();
+    }
+
+    public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState){
+            //Use the current time as the default values for the time picker
+            final Calendar c = Calendar.getInstance();
+            int hour = c.get(Calendar.HOUR_OF_DAY);
+            int minute = c.get(Calendar.MINUTE);
+
+            //Create and return a new instance of TimePickerDialog
+            return new TimePickerDialog(getActivity(),this, hour, minute,
+                    DateFormat.is24HourFormat(getActivity()));
+        }
+
+        //onTimeSet() callback method
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute){
+            TextView tv = (TextView) getActivity().findViewById(R.id.editText_heure_id);
+            //Set a message for user
+            //tv.setText("Your chosen time is...\n\n");
+            //Display the user changed time on TextView
+            // tv.setText(tv.getText()+ "Hour : " + String.valueOf(hourOfDay)
+            //       + "\nMinute : " + String.valueOf(minute) + "\n");
+            tv.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
+
+        }
+    }
+
+
+    public void AddToList(View v) {
+
+        String newItem = txtInput.getText().toString();
+        if(newItem == ""){Toast.makeText(getApplicationContext(), "Choisir l'eure de l'événement !!", Toast.LENGTH_SHORT).show();}
+        else{
+            list.add("Rappel "+list.size()+" : "+newItem);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "Rappel à : "+newItem, Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void browseAudioFiles(View view) {
+
+        ArrayList<String> namess=new ArrayList<>();
+        songsList = new ArrayList<>();
+        String[] STAR = { "*" };
+
+        Cursor cursor;
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+
+        cursor = managedQuery(uri, STAR, selection, null, null);
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    String songName = cursor
+                            .getString(cursor
+                                    .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+
+
+                    String path = cursor.getString(cursor
+                            .getColumnIndex(MediaStore.Audio.Media.DATA));
+
+
+                    String albumName = cursor.getString(cursor
+                            .getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                    int albumId = cursor
+                            .getInt(cursor
+                                    .getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
+
+                    HashMap<String, String> song = new HashMap<String, String>();
+                    song.put("songTitle",albumName+" "+songName+"___"+albumId);
+                    song.put("songPath",path );
+                    songsList.add(song);
+
+                } while (cursor.moveToNext());
+
+            }
+
+        }
+
+        for(int i = 0; i < songsList.size();i++){
+            HashMap<String,String> h = songsList.get(i);
+            for (String name: h.keySet()){
+
+                String key =name.toString();
+                String value = h.get(name).toString();
+                if(key.equals("songPath")) {
+                    String[] parts = value.split("/");
+                    namess.add(parts[parts.length - 1]);
+                }
+            }
+        }
+
+        alertDialog = new AlertDialog.Builder(this).create();
+        LayoutInflater inflater = getLayoutInflater();
+        View convertView = (View) inflater.inflate(R.layout.custom, null);
+        alertDialog.setView(convertView);
+        alertDialog.setTitle("Son de notification");
+        ListView lv = (ListView) convertView.findViewById(R.id.listView1);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,namess);
+        lv.setAdapter(adapter);
+        alertDialog.show();
+
+        // Select Item in listView
+
+       final ListView listTemp = lv;
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String item = (String) listTemp.getItemAtPosition(position);
+
+                for (int i=0;i<parent.getChildCount();i++){
+                    parent.getChildAt(i).setBackgroundColor(Color.rgb(238,240,231));
+                }
+                view.setBackgroundColor(Color.rgb(204,233,243));
+
+                Toast.makeText(getApplicationContext(), "Sonnerie : "+item, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    public void GetSon(View v){
 
     }
 
@@ -125,4 +290,7 @@ public class NotificationActivity extends AppCompatActivity {
         return view;
     }
 }
+
+
+
 }
