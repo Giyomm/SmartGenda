@@ -331,7 +331,32 @@ public class CalendarView extends LinearLayout
 
         @Override
         public boolean isEnabled(int position) {
-            return (position >= monthBeginningCell() && position <= monthBeginningCell()+ getMonthNumberOfDays() -1);
+            // day in question
+            Date date = getItem(position);
+            int day = date.getDate();
+            int month = date.getMonth();
+            int year = date.getYear();
+
+            // today
+            Date today = new Date();
+            //grey out all days before the current day
+            if (    year < today.getYear() ||
+                    month < today.getMonth() && year <= today.getYear() ||
+                    day < today.getDate() && month == today.getMonth() && year <= today.getYear())
+            {
+
+                return false;
+            }
+            //set the color of the current day at blue and style as bold
+            else if (day == today.getDate() && month == today.getMonth() && year == today.getYear())
+            {
+                return true;
+            }
+
+            if(position >= monthBeginningCell() && position <= monthBeginningCell()+ getMonthNumberOfDays() -1)
+                return true;
+            else
+                return false;
         }
     }
 
