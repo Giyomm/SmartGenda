@@ -15,13 +15,14 @@
 
     <Button
         android:id="@+id/reminder_list_delete_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginRight="5dp"
         android:text="X"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:background="#ff0000" />
 
 
 </RelativeLayout>

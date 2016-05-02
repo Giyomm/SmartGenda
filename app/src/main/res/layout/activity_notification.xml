@@ -16,7 +16,7 @@
 
             android:layout_marginBottom="20dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/notif_title_activity"
             android:id="@+id/event_page_title_text_view_id"
@@ -81,7 +81,7 @@
                 android:textStyle="bold"
                 android:id="@+id/textView_sonnerie_id"
                 android:textSize="20dp"
-                android:layout_marginRight="30dp"
+                android:layout_marginRight="10dp"
 
                 />
 
@@ -91,16 +91,16 @@
                 android:text="@string/rechercher_button"
                 android:id="@+id/button_chercher_id"
                 android:onClick="browseAudioFiles"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/my_button_bg"
                 android:layout_weight="0.07"
                 android:textSize="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="30dp"
                 android:text="Aucune"
-                android:id="@+id/textView" />
+                android:id="@+id/textView_sonPath_id" />
 
         </LinearLayout>
 
@@ -191,9 +191,8 @@
                         android:layout_marginRight="20dp"
                         android:textSize="15dp"
                         android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:hint="@string/date_picker_textview"
-                        android:id="@+id/datepicker_textview_id"
-                        android:text="@string/votre_date_textView" />
+                        android:hint="@string/votre_date_textView"
+                        android:id="@+id/datepicker_textview_id" />
 
                     <ImageButton
                         android:layout_width="31dp"
@@ -245,7 +244,8 @@
             android:text="@string/enregistrer_button"
             android:id="@+id/button_enregister_id"
             android:background="#b0c429"
-            android:layout_weight="2.75" />
+            android:layout_weight="2.75"
+            android:onClick="saveNotification" />
 
 
     </LinearLayout>

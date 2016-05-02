@@ -43,6 +43,7 @@ import java.util.List;
 
 public class NotificationActivity extends AppCompatActivity {
 
+    private String chemin_son;
     public DatePickerDialog dpd;
     AlertDialog alertDialog;
 
@@ -95,14 +96,15 @@ public class NotificationActivity extends AppCompatActivity {
     public void saveNotification(View view) {
 
         EditText nameEditText= (EditText) findViewById(R.id.editText_nomNotif_id); String name = nameEditText.getText().toString();
-        TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = nameEditText.getText().toString();
+        TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = dateTextView.getText().toString();
         String heure = txtInput.getText().toString();
 
-        if(name == "" || date == "" || heure == "") Toast.makeText(getApplicationContext(), " Remplir tout les champs !!", Toast.LENGTH_SHORT).show();
+        if(name .equals("") || name==null ) {Toast.makeText(getApplicationContext(), "Entrer le nom de la notification !!", Toast.LENGTH_SHORT).show(); return;}
+        if(date == null || date.equals("")) {Toast.makeText(getApplicationContext(), "Entrer la date !!", Toast.LENGTH_SHORT).show();return;}
+        if(heure == null || heure.equals("")) {Toast.makeText(getApplicationContext(), "Entrer l'heure !!", Toast.LENGTH_SHORT).show();return;}
 
-        else{
-            Toast.makeText(getApplicationContext(), "Notification enegistrer avec succée ", Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(getApplicationContext(), "Notification enegistrer avec succée ", Toast.LENGTH_SHORT).show();
+
     }
 
     public void CloseSonWindow(View view) {
@@ -153,6 +155,8 @@ public class NotificationActivity extends AppCompatActivity {
     public void browseAudioFiles(View view) {
 
         ArrayList<String> namess=new ArrayList<>();
+        final ArrayList<String> listeSonPath=new ArrayList<>();
+        String value = null;
         songsList = new ArrayList<>();
         String[] STAR = { "*" };
 
@@ -196,10 +200,11 @@ public class NotificationActivity extends AppCompatActivity {
             for (String name: h.keySet()){
 
                 String key =name.toString();
-                String value = h.get(name).toString();
+                 value = h.get(name).toString();
                 if(key.equals("songPath")) {
                     String[] parts = value.split("/");
                     namess.add(parts[parts.length - 1]);
+                    listeSonPath.add(value);
                 }
             }
         }
@@ -229,13 +234,28 @@ public class NotificationActivity extends AppCompatActivity {
                 view.setBackgroundColor(Color.rgb(204,233,243));
 
                 Toast.makeText(getApplicationContext(), "Sonnerie : "+item, Toast.LENGTH_SHORT).show();
+                chemin_son = listeSonPath.get(position);
             }
         });
+
 
     }
 
     public void GetSon(View v){
 
+        TextView sonPath = (TextView) findViewById(R.id.textView_sonPath_id);
+        String[] parts = chemin_son.split("/");
+        String titreSonnerie = parts[parts.length - 1];
+        String titreSonnerieAfficher="";
+       try{
+           for (int i=0 ; i<=15 ; i++){
+               titreSonnerieAfficher = titreSonnerieAfficher+titreSonnerie.charAt(i);
+           }
+       }catch(Exception e){
+
+       }
+        sonPath.setText(titreSonnerieAfficher+"...");
+        alertDialog.dismiss();
     }
 
     public class MyCustomAdapter extends BaseAdapter implements ListAdapter {
