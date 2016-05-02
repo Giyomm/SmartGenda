@@ -10,9 +10,13 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -70,6 +74,9 @@ public class CalendarView extends LinearLayout
 
     // month-season association (northern hemisphere, sorry australia :)
     int[] monthSeason = new int[] {2, 2, 3, 3, 3, 0, 0, 0, 1, 1, 1, 2};
+
+    //The gesture detector of the grid
+    private GestureDetectorCompat detector;
 
     public CalendarView(Context context)
     {
@@ -177,6 +184,21 @@ public class CalendarView extends LinearLayout
                 return true;
             }
         });
+
+        detector = new GestureDetectorCompat(getContext(), new CalendarGestureListener());
+        grid.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                detector.onTouchEvent(event);
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        detector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     /**
@@ -328,6 +350,40 @@ public class CalendarView extends LinearLayout
     public interface EventHandler
     {
         void onDayLongPress(Date date);
+    }
+
+    private class CalendarGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+        @Override
+        public boolean onDown(MotionEvent event) {
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2,float velocityX, float velocityY) {
+            float diffX = event2.getX() - event1.getX();
+            if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                if (diffX > 0) {
+                    onSwipeRight();
+                } else {
+                    onSwipeLeft();
+                }
+            }
+            return true;
+        }
+
+        private void onSwipeLeft() {
+            currentDate.add(Calendar.MONTH, 1);
+            updateCalendar();
+        }
+
+        private void onSwipeRight() {
+            currentDate.add(Calendar.MONTH, -1);
+            updateCalendar();
+        }
     }
 
     public int monthBeginningCell(){
