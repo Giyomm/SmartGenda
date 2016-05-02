@@ -27,11 +27,13 @@ import com.agenda.ter.map.DirectionFinderListener;
 import com.agenda.ter.map.Route;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -199,7 +201,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         destinationMarkers = new ArrayList<>();
 
         for (Route route : routes) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 5));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 5));
             ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
             ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
 
@@ -221,6 +223,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 polylineOptions.add(route.points.get(i));
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
+
+            LatLngBounds.Builder b = new LatLngBounds.Builder();
+            for (Marker m : originMarkers)
+                b.include(m.getPosition());
+            for (Marker m : destinationMarkers)
+                b.include(m.getPosition());
+            LatLngBounds bounds = b.build();
+
+            int widthForBounds = getResources().getDisplayMetrics().widthPixels;
+            int heightForBounds = getResources().getDisplayMetrics().heightPixels -
+                    findViewById(R.id.maps_destination_layout_id).getHeight() -
+                    findViewById(R.id.maps_origin_layout_id).getHeight() -
+                    findViewById(R.id.maps_control_panel_layout_id).getHeight() -
+                    findViewById(R.id.maps_saveLocation_bouton_id).getHeight();
+
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,widthForBounds,heightForBounds,25);
+            mMap.animateCamera(cu);
         }
     }
 
