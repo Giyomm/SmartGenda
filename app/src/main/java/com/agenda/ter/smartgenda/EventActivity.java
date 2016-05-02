@@ -86,7 +86,7 @@ public class EventActivity extends AppCompatActivity {
         DatePicker dp = dpd.getDatePicker();
         dp.setMinDate(calendar.getTimeInMillis());
         calendar.add(Calendar.DAY_OF_MONTH,Integer.MAX_VALUE);
-        dp.setMaxDate(calendar.getTimeInMillis());
+        //dp.setMaxDate(calendar.getTimeInMillis());
 
         intentFromCalendar = getIntent();
         long dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
