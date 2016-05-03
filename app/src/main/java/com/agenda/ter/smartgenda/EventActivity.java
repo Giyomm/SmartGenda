@@ -2,12 +2,15 @@ package com.agenda.ter.smartgenda;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -27,6 +30,8 @@ import android.app.DialogFragment;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.agenda.ter.database.EventContract;
+import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Location;
 
 import org.json.JSONObject;
@@ -36,8 +41,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -50,7 +55,7 @@ public class EventActivity extends AppCompatActivity {
     private TextView locationLatLngTextView;
     private ImageButton datepick;
     private EditText desc_even;
-    private static TextView tv;
+    private static TextView hour_picked_text_view;
     private Button saveEventButton;
     private TextView datepickertxtview;
     private TextView meteoPicked;
@@ -75,20 +80,23 @@ public class EventActivity extends AppCompatActivity {
     public static final String EXTRA_LATITUDE = "com.agenda.ter.LAT";
     public static final String EXTRA_LOCALISATION_NAME = "com.agenda.ter.LOCATION_NAME";
 
+    //DATABASE
+    private SmartgendaDbHelper dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event);
+
+        dbHelper = new SmartgendaDbHelper(getApplicationContext());
 
         datepick = (ImageButton) findViewById(R.id.date_even_butonimage_id);
         desc_even = (EditText) findViewById(R.id.desc_even_edittextt_id);
         nameEvent = (EditText) findViewById(R.id.nom_even_edittext_id);
         locationLatLngTextView = (TextView) findViewById(R.id.event_location_texteview_id);
         datepickertxtview = (TextView) findViewById(R.id.datepicker_textview_id);
-        tv = (TextView) findViewById(R.id.event_hourpicker_textview_id);
+        hour_picked_text_view = (TextView) findViewById(R.id.event_hourpicker_textview_id);
         saveEventButton = (Button)findViewById(R.id.event_saveEvent_bouton_id);
         meteoPbar = (ProgressBar)findViewById(R.id.event_weather_progressbar_id);
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
@@ -108,7 +116,6 @@ public class EventActivity extends AppCompatActivity {
         DatePicker dp = dpd.getDatePicker();
         dp.setMinDate(calendar.getTimeInMillis());
         calendar.add(Calendar.DAY_OF_MONTH,Integer.MAX_VALUE);
-        //dp.setMaxDate(calendar.getTimeInMillis());
 
         intentFromCalendar = getIntent();
         dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
@@ -217,32 +224,32 @@ public class EventActivity extends AppCompatActivity {
 
         //onTimeSet() callback method
         public void onTimeSet(TimePicker view, int hourOfDay, int minute){
-            tv.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
+            hour_picked_text_view.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
         }
     }
 
 
-    public void saveEvent(View v){
-        if(nameEvent.getText().toString()==null || nameEvent.getText().toString().equals("")){
+    public void saveEvent(View v) throws ParseException {
+        if(nameEvent.getText().toString().equals("")){
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(datepickertxtview.getText().toString()==null || datepickertxtview.getText().toString().equals("")){
+        if(datepickertxtview.getText().toString().equals("")){
             Toast.makeText(this, "Entrez une date !", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(tv.getText().toString()==null || tv.getText().toString().equals("")){
+        if(hour_picked_text_view.getText().toString().equals("")){
             Toast.makeText(this, "Entrez l'heure !",Toast.LENGTH_SHORT).show();
             return;
         }
-        Log.d("DEST",locationLatLngTextView.getText().toString());
-        if(locationLatLngTextView.getText().toString()==null || locationLatLngTextView.getText().toString().equals("")){
-            Toast.makeText(this, "Entrez le lieu !",Toast.LENGTH_SHORT).show();
-            return;
-        }
+
+        new InsertEventTask(this).execute(nameEvent.getText().toString(),
+                datepickertxtview.getText().toString()+" "+hour_picked_text_view.getText().toString(),
+                desc_even.getText().toString());
+
     }
 
-    // CLASSE ASYNCHRONE POUR LA REQUETE HTTP
+    // CLASSES ASYNCHRONES POUR LA REQUETE HTTP
     public class MyAsyncTaskgetNews extends AsyncTask<String, String, String> {
 
         private float temp;
@@ -364,5 +371,61 @@ public class EventActivity extends AppCompatActivity {
 
     }
 
+    public class InsertEventTask extends  AsyncTask<String, Void, Void>{
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        /** application context. */
+        private EventActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public InsertEventTask(EventActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Progress start");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+
+
+            ContentValues values = new ContentValues();
+
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,params[0]);
+
+            SimpleDateFormat sdf_DATE_TIME = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+            Date dateParse = null;
+            try {
+                dateParse = sdf_DATE_TIME.parse(params[1]);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,dateParse.getTime());
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[2]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,0);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
+
+            long newRowId;
+            newRowId = db.insert(
+                    EventContract.EventEntry.TABLE_NAME,
+                    null,
+                    values);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+        }
+    }
 
 }

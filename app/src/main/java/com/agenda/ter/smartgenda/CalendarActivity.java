@@ -105,6 +105,5 @@ public class CalendarActivity extends AppCompatActivity {
     public void goToEventActivity(View view) {
         Intent intent = new Intent(this, EventActivity.class);
         startActivity(intent);
-
     }
 }

@@ -24,7 +24,7 @@ public final class ReminderContract {
         private static final String COMMA_SEP = ",";
 
         private static final String SQL_CREATE_ENTRIES =
-                "CREATE TABLE IF NOT EXISTS" + ReminderEntry.TABLE_NAME +
+                "CREATE TABLE IF NOT EXISTS " + ReminderEntry.TABLE_NAME +
                         " (" +
                         ReminderEntry.COLUMN_NAME_REMINDER_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
                         ReminderEntry.COLUMN_NAME_REMINDER_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
@@ -32,7 +32,7 @@ public final class ReminderContract {
                         ReminderEntry.COLUMN_NAME_REMINDER_DISPLAY_MAP + INTEGER_TYPE + " DEFAULT 0" +COMMA_SEP +
                         ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID + INTEGER_TYPE + COMMA_SEP +
                         "FOREIGN KEY ("+ ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID +
-                        ") REFERENCES"+ NotificationContract.NotificationEntry.TABLE_NAME + "("+ NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID +")"+
+                        ") REFERENCES "+ NotificationContract.NotificationEntry.TABLE_NAME + "("+ NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID +")"+
                         " )";
 
         private static final String SQL_DELETE_ENTRIES =

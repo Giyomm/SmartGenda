@@ -21,22 +21,21 @@ public final class EventContract {
 
         private static final String VARCHAR_TYPE = " VARCHAR";
         private static final String INTEGER_TYPE = " INTEGER";
-        private static final String DATE_TYPE = " DATETIME";
         private static final String COMMA_SEP = ",";
 
         private static final String SQL_CREATE_ENTRIES =
-                "CREATE TABLE IF NOT EXISTS" + EventEntry.TABLE_NAME +
+                "CREATE TABLE IF NOT EXISTS " + EventEntry.TABLE_NAME +
                         " (" +
                             EventEntry.COLUMN_NAME_EVENT_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
                             EventEntry.COLUMN_NAME_EVENT_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
-                            EventEntry.COLUMN_NAME_EVENT_DATE + DATE_TYPE + COMMA_SEP +
+                            EventEntry.COLUMN_NAME_EVENT_DATE + INTEGER_TYPE + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_DESCRIPTION + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_LOCATION_ID + INTEGER_TYPE + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID + INTEGER_TYPE + COMMA_SEP +
                             "FOREIGN KEY ("+ EventEntry.COLUMN_NAME_EVENT_LOCATION_ID +
-                                ") REFERENCES"+ LocationContract.LocationEntry.TABLE_NAME + "("+ LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID +")"+
+                                ") REFERENCES "+ LocationContract.LocationEntry.TABLE_NAME + "("+ LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID +")"+
                             "FOREIGN KEY ("+ EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID +
-                                ") REFERENCES"+ NotificationContract.NotificationEntry.TABLE_NAME + "("+ NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID +")"+
+                                ") REFERENCES "+ NotificationContract.NotificationEntry.TABLE_NAME + "("+ NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID +")"+
                         " )";
 
         private static final String SQL_DELETE_ENTRIES =
