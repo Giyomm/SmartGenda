@@ -27,6 +27,8 @@
     <string name="event_houre_text_view">L\'heure : </string>
     <string name="event_houre_picker_text_view">heure..</string>
     <string name="event_notification_text_view">Notification :</string>
+    <string name="event_weather_text_view">Météo : </string>
+    <string name="event_weatherpicked_text_view">météo...</string>
 
     <!-- Strings de l'activité Map -->
     <string name="maps_destination_text_view">Destination:</string>

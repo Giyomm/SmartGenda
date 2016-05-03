@@ -18,7 +18,7 @@ public class Location {
         this.mMeteoIcon = mMeteoIcon;
     }
 
-    public Location(String mLocationName, Double mLocationLatitude, Double mLocationLongitude) {
+    public Location(String locationName, double latitudeEvent, double longitudeEvent) {
         this.mLocationName = mLocationName;
         this.mLocationLatitude = mLocationLatitude;
         this.mLocationLongitude = mLocationLongitude;
