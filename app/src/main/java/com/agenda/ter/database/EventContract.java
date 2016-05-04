@@ -12,7 +12,7 @@ public final class EventContract {
     /* Inner class that defines the table contents */
     public static abstract class EventEntry implements BaseColumns {
         public static final String TABLE_NAME = "event";
-        public static final String COLUMN_NAME_EVENT_ID = _ID;
+        public static final String COLUMN_NAME_EVENT_ID = "event_id";
         public static final String COLUMN_NAME_EVENT_NAME = "event_name";
         public static final String COLUMN_NAME_EVENT_DATE = "event_date";
         public static final String COLUMN_NAME_EVENT_TIME = "event_time";
@@ -27,7 +27,7 @@ public final class EventContract {
         private static final String SQL_CREATE_ENTRIES =
                 "CREATE TABLE IF NOT EXISTS " + EventEntry.TABLE_NAME +
                         " (" +
-                            EventEntry.COLUMN_NAME_EVENT_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
+                            EventEntry.COLUMN_NAME_EVENT_ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
                             EventEntry.COLUMN_NAME_EVENT_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_DATE + INTEGER_TYPE + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_TIME + VARCHAR_TYPE + "(255)" + COMMA_SEP +

@@ -7,18 +7,30 @@ import java.util.Date;
  */
 public class Event {
 
+    private int mEventId;
     private String mEventName;
     private Date mEventDate;
+    private String mEventTime;
     private String mEventDescription;
-    private Location mEventLocation;
-    private SmartNotification mEventNotification;
+    private int mEventLocationId;
+    private int mEventNotificationId;
 
-    public Event(String mEventName, Date mEventDate, String mEventDescription, Location mEventLocation, SmartNotification mEventNotification) {
+    public Event(int id, String mEventName, Date mEventDate, String mEventTime,String mEventDescription, int mEventLocation, int mEventNotification) {
+        this.mEventId = id;
         this.mEventName = mEventName;
         this.mEventDate = mEventDate;
+        this.mEventTime = mEventTime;
         this.mEventDescription = mEventDescription;
-        this.mEventLocation = mEventLocation;
-        this.mEventNotification = mEventNotification;
+        this.mEventLocationId = mEventLocation;
+        this.mEventNotificationId = mEventNotification;
+    }
+
+    public int getmEventId() {
+        return mEventId;
+    }
+
+    public void setmEventId(int mEventId) {
+        this.mEventId = mEventId;
     }
 
     public String getmEventName() {
@@ -37,6 +49,22 @@ public class Event {
         this.mEventDate = mEventDate;
     }
 
+    public String getmEventTime() {
+        return mEventTime;
+    }
+
+    public void setmEventTime(String mEventTime) {
+        this.mEventTime = mEventTime;
+    }
+
+    public int getmEventNotificationId() {
+        return mEventNotificationId;
+    }
+
+    public void setmEventNotificationId(int mEventNotificationId) {
+        this.mEventNotificationId = mEventNotificationId;
+    }
+
     public String getmEventDescription() {
         return mEventDescription;
     }
@@ -45,19 +73,11 @@ public class Event {
         this.mEventDescription = mEventDescription;
     }
 
-    public Location getmEventLocation() {
-        return mEventLocation;
+    public int getmEventLocationId() {
+        return mEventLocationId;
     }
 
-    public void setmEventLocation(Location mEventLocation) {
-        this.mEventLocation = mEventLocation;
-    }
-
-    public SmartNotification getmEventNotification() {
-        return mEventNotification;
-    }
-
-    public void setmEventNotification(SmartNotification mEventNotification) {
-        this.mEventNotification = mEventNotification;
+    public void setmEventLocationId(int mEventLocationId) {
+        this.mEventLocationId = mEventLocationId;
     }
 }

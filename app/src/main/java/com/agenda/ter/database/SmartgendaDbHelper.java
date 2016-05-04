@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class SmartgendaDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "Smartgenda.db";
 
     public SmartgendaDbHelper(Context context) {

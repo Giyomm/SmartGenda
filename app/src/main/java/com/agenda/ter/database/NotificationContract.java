@@ -12,7 +12,7 @@ public final class NotificationContract {
     /* Inner class that defines the table contents */
     public static abstract class NotificationEntry implements BaseColumns {
         public static final String TABLE_NAME = "notification";
-        public static final String COLUMN_NAME_NOTIFICATION_ID = _ID;
+        public static final String COLUMN_NAME_NOTIFICATION_ID = "notification_id";
         public static final String COLUMN_NAME_NOTIFICATION_NAME = "notification_name";
         public static final String COLUMN_NAME_NOTIFICATION_COLOR_RED = "notification_color_red";
         public static final String COLUMN_NAME_NOTIFICATION_COLOR_GREEN = "notification_color_green";
@@ -26,7 +26,7 @@ public final class NotificationContract {
         private static final String SQL_CREATE_ENTRIES =
                 "CREATE TABLE IF NOT EXISTS " + NotificationEntry.TABLE_NAME +
                         " (" +
-                        NotificationEntry.COLUMN_NAME_NOTIFICATION_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
+                        NotificationEntry.COLUMN_NAME_NOTIFICATION_ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
                         NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                         NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED + INTEGER_TYPE + COMMA_SEP +
                         NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN + INTEGER_TYPE + COMMA_SEP +

@@ -433,6 +433,8 @@ public class EventActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+            Log.d("YOLO MILLI",""+dateParse.getTime());
+            Log.d("DATE",new SimpleDateFormat("dd/MM/yyyy hh:mm").format(dateParse));
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,dateParse.getTime());
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[2]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[3]);

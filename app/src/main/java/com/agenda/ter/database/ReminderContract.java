@@ -12,7 +12,7 @@ public final class ReminderContract {
     /* Inner class that defines the table contents */
     public static abstract class ReminderEntry implements BaseColumns {
         public static final String TABLE_NAME = "reminder";
-        public static final String COLUMN_NAME_REMINDER_ID =_ID;
+        public static final String COLUMN_NAME_REMINDER_ID = "reminder_id";
         public static final String COLUMN_NAME_REMINDER_NAME = "reminder_name";
         public static final String COLUMN_NAME_REMINDER_DATE = "reminder_date";
         public static final String COLUMN_NAME_REMINDER_DISPLAY_MAP = "reminder_display_map";
@@ -26,7 +26,7 @@ public final class ReminderContract {
         private static final String SQL_CREATE_ENTRIES =
                 "CREATE TABLE IF NOT EXISTS " + ReminderEntry.TABLE_NAME +
                         " (" +
-                        ReminderEntry.COLUMN_NAME_REMINDER_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
+                        ReminderEntry.COLUMN_NAME_REMINDER_ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
                         ReminderEntry.COLUMN_NAME_REMINDER_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                         ReminderEntry.COLUMN_NAME_REMINDER_DATE + DATE_TYPE + COMMA_SEP +
                         ReminderEntry.COLUMN_NAME_REMINDER_DISPLAY_MAP + INTEGER_TYPE + " DEFAULT 0" +COMMA_SEP +
