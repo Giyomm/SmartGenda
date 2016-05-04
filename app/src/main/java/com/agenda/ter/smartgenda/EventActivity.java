@@ -266,6 +266,15 @@ public class EventActivity extends AppCompatActivity {
             Toast.makeText(this, "Entrez l'heure !", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        new InsertEventTask(this).execute(
+                nameEvent.getText().toString(),
+                datepickertxtview.getText().toString(),
+                hour_picked_text_view.getText().toString(),
+                desc_even.getText().toString());
+
+        Toast.makeText(this,"Evénement ajouté avec succés !",Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     // CLASSES ASYNCHRONES POUR LA REQUETE HTTP
