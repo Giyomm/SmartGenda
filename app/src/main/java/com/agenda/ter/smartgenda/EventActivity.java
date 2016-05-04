@@ -6,7 +6,9 @@ import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -14,6 +16,7 @@ import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -47,6 +50,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.SimpleTimeZone;
 
 public class EventActivity extends AppCompatActivity {
 
@@ -57,7 +61,7 @@ public class EventActivity extends AppCompatActivity {
     private EditText desc_even;
     private static TextView hour_picked_text_view;
     private Button saveEventButton;
-    private TextView datepickertxtview;
+    public static TextView datepickertxtview;
     private TextView meteoPicked;
     private ImageView iconMeteo;
 
@@ -73,7 +77,10 @@ public class EventActivity extends AppCompatActivity {
     double latitudeEvent;
     double longitudeEvent;
     String latitudeCity, longitudeCity;
-    long dateSelected;
+    public long dateSelected;
+
+    // HEURE ET MINUTE DU SYS
+    private int hourSys, minuteSys;
 
     //LES EXTRAS
     public static final String EXTRA_LONGITUDE = "com.agenda.ter.LONG";
@@ -169,6 +176,7 @@ public class EventActivity extends AppCompatActivity {
                 String myurl = "http://www.prevision-meteo.ch/services/json/lat="+latitudeCity+"lng="+longitudeCity;
                 changeProgressBarVisibility();
                 new  MyAsyncTaskgetNews().execute(myurl);
+
             }catch (Exception ex){}
 
             locationLatLngTextView.setText(locationName+"");
@@ -210,45 +218,54 @@ public class EventActivity extends AppCompatActivity {
     }
     public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
+        private int hourSys,minuteSys;
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState){
             //Use the current time as the default values for the time picker
             final Calendar c = Calendar.getInstance();
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int minute = c.get(Calendar.MINUTE);
+            hourSys = c.get(Calendar.HOUR_OF_DAY);
+            minuteSys = c.get(Calendar.MINUTE);
 
             //Create and return a new instance of TimePickerDialog
-            return new TimePickerDialog(getActivity(),this, hour, minute,
-                    DateFormat.is24HourFormat(getActivity()));
+            return new TimePickerDialog(getActivity(),this, hourSys, minuteSys, DateFormat.is24HourFormat(getActivity()));
+
         }
 
         //onTimeSet() callback method
         public void onTimeSet(TimePicker view, int hourOfDay, int minute){
-            hour_picked_text_view.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            String dateString = formatter.format(new Date(System.currentTimeMillis()));
+
+            if(hourOfDay<hourSys && EventActivity.datepickertxtview.getText().toString().equals(dateString)) {
+                Toast.makeText(getActivity(), "Veuillez choisir une heure convenable !", Toast.LENGTH_SHORT).show();
+            }else{
+                if (hourOfDay <= 9 && minute <= 9) {
+                    hour_picked_text_view.setText("0" + String.valueOf(hourOfDay) + ":0" + String.valueOf(minute));
+                } else if (hourOfDay <= 9 && minute > 9) {
+                    hour_picked_text_view.setText("0" + String.valueOf(hourOfDay) + ":" + String.valueOf(minute));
+                } else if (hourOfDay > 9 && minute <= 9) {
+                    hour_picked_text_view.setText(String.valueOf(hourOfDay) + ":0" + String.valueOf(minute));
+                } else {
+                    hour_picked_text_view.setText(String.valueOf(hourOfDay) + ":" + String.valueOf(minute));
+                }
+            }
         }
     }
 
 
     public void saveEvent(View v) throws ParseException {
-        if(nameEvent.getText().toString().equals("")){
+        if (nameEvent.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(datepickertxtview.getText().toString().equals("")){
+        if (datepickertxtview.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez une date !", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(hour_picked_text_view.getText().toString().equals("")){
-            Toast.makeText(this, "Entrez l'heure !",Toast.LENGTH_SHORT).show();
+        if (hour_picked_text_view.getText().toString().equals("")) {
+            Toast.makeText(this, "Entrez l'heure !", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        new InsertEventTask(this).execute(
-                nameEvent.getText().toString(),
-                datepickertxtview.getText().toString(),
-                hour_picked_text_view.getText().toString(),
-                desc_even.getText().toString());
-
     }
 
     // CLASSES ASYNCHRONES POUR LA REQUETE HTTP
@@ -284,34 +301,26 @@ public class EventActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... progress) {
 
             try {
-                //Log.d("PROGRESS", progress[0]);
                 JSONObject root = new JSONObject(progress[0]);
                 SimpleDateFormat sdf_JSON = new SimpleDateFormat("dd.MM.yyyy");
                 String dateSelectedString = sdf_JSON.format(dateSelected);
 
                 JSONObject day_0 = root.getJSONObject("fcst_day_0");
-                //Date d0 = sdf.parse(date_0);
 
                 JSONObject day_1 = root.getJSONObject("fcst_day_1");
-                //Date d1 = sdf.parse(date_1);
 
                 JSONObject day_2 = root.getJSONObject("fcst_day_2");
-                //Date d2 = sdf.parse(date_2);
 
                 JSONObject day_3 = root.getJSONObject("fcst_day_3");
-                //Date d3 = sdf.parse(date_3);
 
                 JSONObject day_4 = root.getJSONObject("fcst_day_4");
-                //Date d4 = sdf.parse(date_4);
 
                 ArrayList<JSONObject> dayList = new ArrayList<>();
                 dayList.add(day_0);dayList.add(day_1);dayList.add(day_2);dayList.add(day_3);dayList.add(day_4);
 
-                // Log.d("DATE SIZE LISTE",""+dayList.size());
 
                 for (JSONObject d : dayList) {
                     String date = d.getString("date");
-                    //Log.d("DATE LISTE",new SimpleDateFormat("dd/MM/yyyy").format(d)+ " COMPARE WITH "+new SimpleDateFormat("dd/MM/yyyy").format(new Date(dateSelected)));
                     if(date.equals(dateSelectedString)) {
                         findPrevison = true;
                         temp = (d.getInt("tmin") + d.getInt("tmax")) / 2;
@@ -394,8 +403,6 @@ public class EventActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... params) {
-
-
 
             ContentValues values = new ContentValues();
 
