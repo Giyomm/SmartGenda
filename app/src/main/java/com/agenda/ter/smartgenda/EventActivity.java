@@ -243,8 +243,10 @@ public class EventActivity extends AppCompatActivity {
             return;
         }
 
-        new InsertEventTask(this).execute(nameEvent.getText().toString(),
-                datepickertxtview.getText().toString()+" "+hour_picked_text_view.getText().toString(),
+        new InsertEventTask(this).execute(
+                nameEvent.getText().toString(),
+                datepickertxtview.getText().toString(),
+                hour_picked_text_view.getText().toString(),
                 desc_even.getText().toString());
 
     }
@@ -399,15 +401,16 @@ public class EventActivity extends AppCompatActivity {
 
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,params[0]);
 
-            SimpleDateFormat sdf_DATE_TIME = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+            SimpleDateFormat sdf_DATE = new SimpleDateFormat("dd/MM/yyyy");
             Date dateParse = null;
             try {
-                dateParse = sdf_DATE_TIME.parse(params[1]);
+                dateParse = sdf_DATE.parse(params[1]);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,dateParse.getTime());
-            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[2]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[2]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[3]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,0);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
 

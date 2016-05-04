@@ -15,6 +15,7 @@ public final class EventContract {
         public static final String COLUMN_NAME_EVENT_ID = _ID;
         public static final String COLUMN_NAME_EVENT_NAME = "event_name";
         public static final String COLUMN_NAME_EVENT_DATE = "event_date";
+        public static final String COLUMN_NAME_EVENT_TIME = "event_time";
         public static final String COLUMN_NAME_EVENT_DESCRIPTION = "event_desc";
         public static final String COLUMN_NAME_EVENT_LOCATION_ID = "event_meteo_id";
         public static final String COLUMN_NAME_EVENT_NOTIFICATION_ID = "event_notification_id";
@@ -29,6 +30,7 @@ public final class EventContract {
                             EventEntry.COLUMN_NAME_EVENT_ID + INTEGER_TYPE + " PRIMARY KEY NOT NULL," +
                             EventEntry.COLUMN_NAME_EVENT_NAME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_DATE + INTEGER_TYPE + COMMA_SEP +
+                            EventEntry.COLUMN_NAME_EVENT_TIME + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_DESCRIPTION + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_LOCATION_ID + INTEGER_TYPE + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID + INTEGER_TYPE + COMMA_SEP +
