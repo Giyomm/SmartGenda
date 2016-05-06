@@ -22,6 +22,7 @@ import android.text.format.DateFormat;
 import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
@@ -37,6 +38,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.agenda.ter.database.EventContract;
+import com.agenda.ter.database.LocationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Location;
 
@@ -56,6 +58,9 @@ import java.util.Date;
 import java.util.SimpleTimeZone;
 
 public class EventActivity extends AppCompatActivity {
+    //MES***
+    private String idLocation;
+    private String iconPath;
 
     public DatePickerDialog dpd;
     private EditText nameEvent;
@@ -67,6 +72,7 @@ public class EventActivity extends AppCompatActivity {
     public static TextView datepickertxtview;
     private TextView meteoPicked;
     private ImageView iconMeteo;
+    private TextView locationName;
 
     private CalendarView calendar2;
     private Date selectedDate;
@@ -95,6 +101,8 @@ public class EventActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // enlever le focus ***MES
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event);
@@ -111,6 +119,10 @@ public class EventActivity extends AppCompatActivity {
         meteoPbar = (ProgressBar)findViewById(R.id.event_weather_progressbar_id);
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
+
+        //******** MES
+        locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
+
 
         //CACHER PROGRESSBAR
         meteoPbar.setVisibility(View.GONE);
@@ -276,11 +288,26 @@ public class EventActivity extends AppCompatActivity {
             return;
         }
 
+        // Add Location
+        new InsertLocationTask(this).execute(
+                locationName.getText().toString(),
+                meteoPicked.getText().toString(),
+                longitudeCity,
+                latitudeCity,
+                iconPath
+
+        );
+
         new InsertEventTask(this).execute(
                 nameEvent.getText().toString(),
                 datepickertxtview.getText().toString(),
                 hour_picked_text_view.getText().toString(),
-                desc_even.getText().toString());
+                desc_even.getText().toString(),
+                idLocation
+
+        );
+
+        Log.d("Location Id : ",idLocation);
 
         Toast.makeText(this,"Evénement ajouté avec succés !",Toast.LENGTH_SHORT).show();
         finish();
@@ -342,7 +369,7 @@ public class EventActivity extends AppCompatActivity {
                     if(date.equals(dateSelectedString)) {
                         findPrevison = true;
                         temp = (d.getInt("tmin") + d.getInt("tmax")) / 2;
-                        String iconPath = d.getString("icon");
+                        iconPath = d.getString("icon");
                         Log.d("TMP", "" + temp);
                         Log.d("ICON", iconPath);
                         new ImageLoadTask(iconPath, iconMeteo).execute();
@@ -447,6 +474,55 @@ public class EventActivity extends AppCompatActivity {
                     null,
                     values);
 
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+        }
+    }
+
+    // InsertLocationTask MES***********
+    public class InsertLocationTask extends  AsyncTask<String, Void, Void>{
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        /** application context. */
+        private EventActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public InsertLocationTask(EventActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Progress start");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            ContentValues values = new ContentValues();
+
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME,params[0]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE,params[1]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE,params[2]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE,params[3]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON,0);
+
+
+            long newRowId;
+            newRowId = db.insert(
+                   LocationContract.LocationEntry.TABLE_NAME,
+                    null,
+                    values);
+            idLocation =  String.valueOf(newRowId);
             return null;
         }
 

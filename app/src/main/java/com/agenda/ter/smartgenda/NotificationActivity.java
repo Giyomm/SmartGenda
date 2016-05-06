@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -44,17 +45,19 @@ import java.util.List;
 public class NotificationActivity extends AppCompatActivity {
 
     private String chemin_son;
-    public DatePickerDialog dpd;
-    AlertDialog alertDialog;
-
-    public ArrayList<String> list;
-    public  MyCustomAdapter adapter;
-    public TextView txtInput;
-
+    private DatePickerDialog dpd;
+    private AlertDialog alertDialog;
+    private ArrayList<String> list;
+    private MyCustomAdapter adapter;
+    private TextView txtInput;
     private ArrayList<HashMap<String, String>> songsList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // enlever le focus
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification);
 
@@ -77,7 +80,6 @@ public class NotificationActivity extends AppCompatActivity {
                 datepickertxtview.setText(dayOfMonth + "/" + (monthOfYear+1) + "/"+ year);
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-
         // Fin_DatePicker
 
 
@@ -86,7 +88,6 @@ public class NotificationActivity extends AppCompatActivity {
     public void showDatePicker(View view) {
         dpd.show();
     }
-
 
     public void showTimePicker(View v){
         DialogFragment newFragment = new TimePickerFragment();
@@ -214,15 +215,15 @@ public class NotificationActivity extends AppCompatActivity {
         View convertView = (View) inflater.inflate(R.layout.custom, null);
         alertDialog.setView(convertView);
         alertDialog.setTitle("Son de notification");
-        ListView lv = (ListView) convertView.findViewById(R.id.listView1);
+        ListView listViewSon = (ListView) convertView.findViewById(R.id.listView1);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,namess);
-        lv.setAdapter(adapter);
+        listViewSon.setAdapter(adapter);
         alertDialog.show();
 
-        // Select Item in listView
 
-       final ListView listTemp = lv;
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        // Select Item in listView
+    final ListView listTemp = listViewSon;
+        listViewSon.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -238,7 +239,6 @@ public class NotificationActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     public void GetSon(View v){
@@ -251,9 +251,8 @@ public class NotificationActivity extends AppCompatActivity {
            for (int i=0 ; i<=15 ; i++){
                titreSonnerieAfficher = titreSonnerieAfficher+titreSonnerie.charAt(i);
            }
-       }catch(Exception e){
+       }catch(Exception e){}
 
-       }
         sonPath.setText(titreSonnerieAfficher+"...");
         alertDialog.dismiss();
     }
