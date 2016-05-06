@@ -39,8 +39,6 @@ public class CalendarActivity extends AppCompatActivity {
 
     //Event list
     private ArrayList<Event> eventList;
-    private EventListAdapter customAdapter;
-    private ListView events_list_view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +81,8 @@ public class CalendarActivity extends AppCompatActivity {
         View convertView = (View) inflater.inflate(R.layout.calendar_event_list, null);
         eventDialogBuilder.setView(convertView);
 
-        events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
-        customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventList);
+        ListView events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
+        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventList);
         events_list_view.setAdapter(customAdapter);
 
         eventDialogBuilder.setNegativeButton(
@@ -261,11 +259,9 @@ public class CalendarActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... params) {
-            // Define 'where' part of query.
+            // DELETE Event WHERE Event.id = params[0]
             String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
-            // Specify arguments in placeholder order.
             String[] selectionArgs = {params[0]};
-            // Issue SQL statement.
             db.delete(EventContract.EventEntry.TABLE_NAME, selection, selectionArgs);
             return null;
         }
