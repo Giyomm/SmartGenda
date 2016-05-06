@@ -30,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -51,6 +52,10 @@ public class NotificationActivity extends AppCompatActivity {
     private MyCustomAdapter adapter;
     private TextView txtInput;
     private ArrayList<HashMap<String, String>> songsList;
+
+    private Spinner spinner;
+    String selectedColor;
+
 
 
     @Override
@@ -82,6 +87,23 @@ public class NotificationActivity extends AppCompatActivity {
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         // Fin_DatePicker
 
+        //Spinner Color
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerColor);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.array_name, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedColor = (String) parent.getItemAtPosition(position);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
 
     }
 
@@ -112,6 +134,7 @@ public class NotificationActivity extends AppCompatActivity {
 
         alertDialog.dismiss();
     }
+
 
     public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
