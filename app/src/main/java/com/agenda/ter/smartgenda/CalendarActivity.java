@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -24,7 +25,6 @@ import com.agenda.ter.model.Event;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -39,6 +39,8 @@ public class CalendarActivity extends AppCompatActivity {
 
     //Event list
     private ArrayList<Event> eventList;
+    private EventListAdapter customAdapter;
+    private ListView events_list_view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +68,6 @@ public class CalendarActivity extends AppCompatActivity {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                Log.d("DATE",new SimpleDateFormat("dd/MM/yyyy hh:mm").format(dateParse));
-                Log.d("DATE ATASK",""+dateParse.getTime());
                 new GetEventTask(CalendarActivity.this).execute(""+dateParse.getTime());
             }
         });
@@ -83,8 +83,8 @@ public class CalendarActivity extends AppCompatActivity {
         View convertView = (View) inflater.inflate(R.layout.calendar_event_list, null);
         eventDialogBuilder.setView(convertView);
 
-        ListView events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
-        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventList);
+        events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
+        customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventList);
         events_list_view.setAdapter(customAdapter);
 
         eventDialogBuilder.setNegativeButton(
@@ -117,15 +117,11 @@ public class CalendarActivity extends AppCompatActivity {
 
     public class EventListAdapter extends ArrayAdapter<Event>{
 
-        public EventListAdapter(Context context, int resource) {
-            super(context, resource);
-        }
-
         public EventListAdapter(Context context, int resource, List<Event> items) {
             super(context, resource, items);
         }
 
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
 
             View v = convertView;
 
@@ -135,11 +131,14 @@ public class CalendarActivity extends AppCompatActivity {
                 v = vi.inflate(R.layout.calendar_list_item_row, null);
             }
 
-            Event e = getItem(position);
+            final Event e = getItem(position);
 
             TextView event_name = (TextView) v.findViewById(R.id.calendar_event_list_name_text_View_id);
             TextView event_desc = (TextView) v.findViewById(R.id.calendar_event_list_desc_text_View_id);
             TextView event_time = (TextView) v.findViewById(R.id.calendar_event_list_desc_time_View_id);
+
+            Button edit_button = (Button) v.findViewById(R.id.calendar_event_list_modify_button_id);
+            Button delete_button = (Button) v.findViewById(R.id.calendar_event_list_delete_button_id);
 
             event_name.setText(e.getmEventName());
 
@@ -148,15 +147,24 @@ public class CalendarActivity extends AppCompatActivity {
 
             event_time.setText(e.getmEventTime());
 
+            delete_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int id = e.getmEventId();
+                    String [] _idStr = {""+id};
+                    new DeleteEventTask(CalendarActivity.this).execute(_idStr);
+                    eventList.remove(e);
+                    notifyDataSetChanged();
+                }
+            });
+
             return v;
         }
     }
 
     public class GetEventTask extends AsyncTask<String, String, String> {
 
-        /** progress dialog to show user that the backup is processing. */
         private ProgressDialog dialog;
-        /** application context. */
         private CalendarActivity activity;
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -206,7 +214,6 @@ public class CalendarActivity extends AppCompatActivity {
                     null                                      // The sort order
             );
 
-            Log.d("QUERY","RESULTS ARE IN!");
             while (queryResult.moveToNext()) {
                 int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
                 String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
@@ -218,9 +225,9 @@ public class CalendarActivity extends AppCompatActivity {
 
                 Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
                 eventList.add(e);
-                Log.d("TASK EVENT",e.getmEventName());
             }
 
+            queryResult.close();
             return params[0];
         }
 
@@ -232,4 +239,43 @@ public class CalendarActivity extends AppCompatActivity {
             dbHelper.close();
         }
     }
+
+    public class DeleteEventTask extends AsyncTask<String, Void, Void>{
+
+        private ProgressDialog dialog;
+        private CalendarActivity activity;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public DeleteEventTask(CalendarActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            dialog.setMessage("Suppression en cours...");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            // Define 'where' part of query.
+            String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
+            // Specify arguments in placeholder order.
+            String[] selectionArgs = {params[0]};
+            // Issue SQL statement.
+            db.delete(EventContract.EventEntry.TABLE_NAME, selection, selectionArgs);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dbHelper.close();
+            dialog.dismiss();
+        }
+    }
+
 }

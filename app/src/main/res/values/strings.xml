@@ -2,7 +2,7 @@
     <string name="app_name">SmartGenda</string>
     <string name="add">+</string>
     <string name="remove">x</string>
-    <string name="update">maj</string>
+    <string name="update">edit</string>
 
     <!-- Strings de l'activité Calendar -->
     <string name="calendar_title_activity_calendar">Calendrier</string>
