@@ -34,11 +34,14 @@ public class CalendarActivity extends AppCompatActivity {
 
     public final static String EXTRA_SELECTED_DATE = "com.agenda.ter.smartgenda.SELECTED_DATE";
 
+    //The UI Calendar View
+    private com.agenda.ter.smartgenda.CalendarView mCalendarView;
+
     //DATABASE
     private SmartgendaDbHelper dbHelper;
 
-    //Event list
-    private ArrayList<Event> eventList;
+    //Event list for a selected day
+    private ArrayList<Event> eventDayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,15 +49,13 @@ public class CalendarActivity extends AppCompatActivity {
         setContentView(R.layout.activity_calendar);
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
-        eventList = new ArrayList<>();
+        eventDayList = new ArrayList<>();
 
-        HashSet<Date> events = new HashSet<>();
-
-        com.agenda.ter.smartgenda.CalendarView cv = ((com.agenda.ter.smartgenda.CalendarView)findViewById(R.id.calendar_view));
-        cv.updateCalendar(events);
+        mCalendarView = ((com.agenda.ter.smartgenda.CalendarView)findViewById(R.id.calendar_view));
+        new GetAllEventTask(this).execute();
 
         // assign event handler
-        cv.setEventHandler(new com.agenda.ter.smartgenda.CalendarView.EventHandler()
+        mCalendarView.setEventHandler(new com.agenda.ter.smartgenda.CalendarView.EventHandler()
         {
             @Override
             public void onDayLongPress(Date date)
@@ -82,7 +83,7 @@ public class CalendarActivity extends AppCompatActivity {
         eventDialogBuilder.setView(convertView);
 
         ListView events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
-        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventList);
+        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row, eventDayList);
         events_list_view.setAdapter(customAdapter);
 
         eventDialogBuilder.setNegativeButton(
@@ -111,6 +112,21 @@ public class CalendarActivity extends AppCompatActivity {
     public void goToEventActivity(View view) {
         Intent intent = new Intent(this, EventActivity.class);
         startActivity(intent);
+    }
+
+    public void insertEventInHashSet(Event e){
+        ArrayList<Event> tmpHash = mCalendarView.getEventHashSet();
+        tmpHash.add(e);
+        mCalendarView.setEventHashSet(tmpHash);
+    }
+
+    public void removeEventInHashSet(int id){
+        ArrayList<Event> tmpHash = mCalendarView.getEventHashSet();
+        for (Event e : tmpHash) {
+            if(e.getmEventId() == id)
+                tmpHash.remove(e);
+        }
+        mCalendarView.setEventHashSet(tmpHash);
     }
 
     public class EventListAdapter extends ArrayAdapter<Event>{
@@ -150,8 +166,11 @@ public class CalendarActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     int id = e.getmEventId();
                     String [] _idStr = {""+id};
+
+                    //remove from database (and the hash set)
                     new DeleteEventTask(CalendarActivity.this).execute(_idStr);
-                    eventList.remove(e);
+
+                    eventDayList.remove(e);
                     notifyDataSetChanged();
                 }
             });
@@ -173,7 +192,7 @@ public class CalendarActivity extends AppCompatActivity {
         }
 
         protected void onPreExecute() {
-            eventList.clear();
+            eventDayList.clear();
             dialog.setMessage("Récupération des données");
             dialog.show();
         }
@@ -222,7 +241,7 @@ public class CalendarActivity extends AppCompatActivity {
                 int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
 
                 Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
-                eventList.add(e);
+                eventDayList.add(e);
             }
 
             queryResult.close();
@@ -263,6 +282,7 @@ public class CalendarActivity extends AppCompatActivity {
             String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
             String[] selectionArgs = {params[0]};
             db.delete(EventContract.EventEntry.TABLE_NAME, selection, selectionArgs);
+            //removeEventInHashSet(Integer.valueOf(params[0]));
             return null;
         }
 
@@ -271,6 +291,75 @@ public class CalendarActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dbHelper.close();
             dialog.dismiss();
+            mCalendarView.updateCalendar();
+        }
+    }
+
+    public class GetAllEventTask extends AsyncTask<String, Void, Void>{
+
+        private ProgressDialog dialog;
+        private CalendarActivity activity;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetAllEventTask(CalendarActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM event
+            String[] projection = {
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID
+            };
+
+            Cursor queryResult = db.query(
+                    EventContract.EventEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    null,                                     // The columns for the WHERE clause
+                    null,                                     // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+                int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
+                String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
+                String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
+                String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
+                int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
+                int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
+
+                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
+                insertEventInHashSet(e);
+            }
+            queryResult.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            mCalendarView.updateCalendar();
         }
     }
 

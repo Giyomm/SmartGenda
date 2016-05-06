@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
+import com.agenda.ter.model.Event;
 import com.agenda.ter.model.Location;
 
 import org.json.JSONObject;
@@ -307,9 +308,9 @@ public class EventActivity extends AppCompatActivity {
 
         );
 
-        Log.d("Location Id : ",idLocation);
+        //Log.d("Location Id : ",idLocation);
 
-        Toast.makeText(this,"Evénement ajouté avec succés !",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -319,11 +320,6 @@ public class EventActivity extends AppCompatActivity {
         private float temp;
         private Boolean findPrevison = false;
 
-        @Override
-        protected void onPreExecute() {
-
-
-        }
         @Override
         protected String  doInBackground(String... params) {
             String NewsData="";

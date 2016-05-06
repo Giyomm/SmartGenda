@@ -27,6 +27,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.agenda.ter.model.Event;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,6 +58,9 @@ public class CalendarView extends LinearLayout
 
     //event handling
     private EventHandler eventHandler = null;
+
+    //hash set of events
+    private ArrayList<Event> eventHashSet = new ArrayList<>();
 
     // internal components
     private LinearLayout header;
@@ -206,14 +211,6 @@ public class CalendarView extends LinearLayout
      */
     public void updateCalendar()
     {
-        updateCalendar(null);
-    }
-
-    /**
-     * Display dates correctly in grid
-     */
-    public void updateCalendar(HashSet<Date> events)
-    {
         ArrayList<Date> cells = new ArrayList<>();
         Calendar calendar = (Calendar)currentDate.clone();
 
@@ -231,8 +228,12 @@ public class CalendarView extends LinearLayout
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
 
+        for (Event e : eventHashSet) {
+            Log.d("HASH SET",e.getmEventName());
+        }
+
         // update grid
-        grid.setAdapter(new CalendarAdapter(getContext(), cells, events));
+        grid.setAdapter(new CalendarAdapter(getContext(), cells, eventHashSet));
 
         // update title
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.FRANCE);
@@ -250,12 +251,12 @@ public class CalendarView extends LinearLayout
     private class CalendarAdapter extends ArrayAdapter<Date>
     {
         // days with events
-        private HashSet<Date> eventDays;
+        private ArrayList<Event> eventDays;
 
         // for view inflation
         private LayoutInflater inflater;
 
-        public CalendarAdapter(Context context, ArrayList<Date> days, HashSet<Date> eventDays)
+        public CalendarAdapter(Context context, ArrayList<Date> days, ArrayList<Event> eventDays)
         {
             super(context, R.layout.control_calendar_day, days);
             this.eventDays = eventDays;
@@ -280,20 +281,19 @@ public class CalendarView extends LinearLayout
 
             // if this day has an event, specify event image
             view.setBackgroundResource(0);
-            if (eventDays != null)
+            for (Event event : eventDays)
             {
-                for (Date eventDate : eventDays)
+                Date eventDate = event.getmEventDate();
+                if (eventDate.getDate() == day &&
+                        eventDate.getMonth() == month &&
+                        eventDate.getYear() == year)
                 {
-                    if (eventDate.getDate() == day &&
-                            eventDate.getMonth() == month &&
-                            eventDate.getYear() == year)
-                    {
-                        // mark this day for event
-                        view.setBackgroundResource(R.drawable.reminder);
-                        break;
-                    }
+                    // mark this day for event
+                    view.setBackgroundResource(R.drawable.reminder);
+                    break;
                 }
             }
+
             //Get the cell view
             TextView cell = ((TextView)view);
 
@@ -434,5 +434,13 @@ public class CalendarView extends LinearLayout
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         dpd.show();
+    }
+
+    public ArrayList<Event> getEventHashSet() {
+        return eventHashSet;
+    }
+
+    public void setEventHashSet(ArrayList<Event> eventHashSet) {
+        this.eventHashSet = eventHashSet;
     }
 }
