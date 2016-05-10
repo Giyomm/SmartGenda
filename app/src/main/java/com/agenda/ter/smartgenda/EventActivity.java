@@ -55,6 +55,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.SimpleTimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EventActivity extends AppCompatActivity {
     //MES***
@@ -72,6 +74,7 @@ public class EventActivity extends AppCompatActivity {
     private TextView meteoPicked;
     private ImageView iconMeteo;
     private TextView locationName;
+    private EditText emailEditText;
 
     private ProgressBar meteoPbar;
 
@@ -119,8 +122,8 @@ public class EventActivity extends AppCompatActivity {
         meteoPbar = (ProgressBar)findViewById(R.id.event_weather_progressbar_id);
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
-
         locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
+        emailEditText = (EditText)findViewById(R.id.event_email_edit_text_id);
 
         //CACHER PROGRESSBAR
         meteoPbar.setVisibility(View.GONE);
@@ -318,6 +321,16 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    public boolean emailValidator(String email)
+    {
+        Pattern pattern;
+        Matcher matcher;
+        final String EMAIL_PATTERN = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+        pattern = Pattern.compile(EMAIL_PATTERN);
+        matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
     public void saveEvent(View v) throws ParseException {
         if (nameEvent.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
@@ -329,6 +342,10 @@ public class EventActivity extends AppCompatActivity {
         }
         if (hour_picked_text_view.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez l'heure !", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(!emailValidator(emailEditText.getText().toString())){
+            Toast.makeText(this,"Email non valide !",Toast.LENGTH_SHORT).show();
             return;
         }
 
