@@ -1,10 +1,12 @@
 package com.agenda.ter.smartgenda;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -217,6 +219,20 @@ public class EventActivity extends AppCompatActivity {
 
             locationLatLngTextView.setText(locationName+"");
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Modifications non sauvegardées")
+                .setMessage("Voulez-vous quitter sans sauvegarder?")
+                .setNegativeButton("Non", null)
+                .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                }).create().show();
     }
 
     private void fillEventActivityFields(Event event) {
