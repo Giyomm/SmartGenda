@@ -95,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // LES WIDGETS DE L'ACITIVTE MAPS
         chercherBtn = (Button) findViewById(R.id.maps_chercherLieu_bouton_id);
         destinationEditText = (EditText) findViewById(R.id.maps_destination_edittext_id);
-        departEditText = (EditText) findViewById(R.id.maps_origin_edittext_id);
+        //departEditText = (EditText) findViewById(R.id.maps_origin_edittext_id);
         saveLocationButon = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
 
 
@@ -127,7 +127,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Log.d("LOCATION", "location : "+  mMap.getMyLocation().getLatitude()+ " , "+mMap.getMyLocation().getLongitude());
                 Log.d("Location par def", "" + mMap.getMyLocation());
                 try {
-                    departEditText.setText(mMap.getMyLocation().getLatitude() + " , " + mMap.getMyLocation().getLongitude());
+                    //departEditText.setText(mMap.getMyLocation().getLatitude() + " , " + mMap.getMyLocation().getLongitude());
                     LatLng latlng = new LatLng(mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,10.0f));
                 } catch (Exception e) {
@@ -138,7 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    public void chercherItineraire(View v){
+    /*public void chercherItineraire(View v){
         sendRequest(); saveLocationButon.setEnabled(true);
     }
 
@@ -241,6 +241,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,widthForBounds,heightForBounds,25);
             mMap.animateCamera(cu);
         }
+    }*/
+
+    public void onSearch (View v){
+        String location = destinationEditText.getText().toString();
+        List<Address> addressList = null;
+        if(location == null || !location.equals("")){
+            Geocoder geocoder = new Geocoder(this);
+            try{
+                addressList = geocoder.getFromLocationName(location,1);
+            }catch (Exception e){
+
+            }
+            Address address = addressList.get(0);
+            latitude = address.getLatitude() ; longitude = address.getLongitude();
+            LatLng latlng = new LatLng(latitude,longitude);
+            mMap.addMarker(new MarkerOptions().position(latlng));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng,12));
+        }
     }
 
 
@@ -269,7 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    // ENVOYER UNE LOCALISATION A EVENTSACTIVITY
+    //ENVOYER UNE LOCALISATION A EVENTSACTIVITY
     public void saveLocation(View view) {
         if(destinationEditText.getText().toString()==null || destinationEditText.getText().toString().equals("")){
             Toast.makeText(this, "Entrez une destination !", Toast.LENGTH_SHORT).show();

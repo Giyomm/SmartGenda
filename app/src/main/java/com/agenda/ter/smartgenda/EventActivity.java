@@ -133,20 +133,31 @@ public class EventActivity extends AppCompatActivity {
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                datepickertxtview.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
+                if(dayOfMonth<=9 && (monthOfYear+1)<=9){
+                    datepickertxtview.setText("0"+dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
+                }else if(dayOfMonth<=9 && (monthOfYear+1)>9){
+                    datepickertxtview.setText("0"+dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
+                }else if(dayOfMonth>9 && (monthOfYear+1)<=9){
+                    datepickertxtview.setText(dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
+                }else {
+                    datepickertxtview.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
+                }
+
+
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         DatePicker dp = dpd.getDatePicker();
         dp.setMinDate(calendar.getTimeInMillis());
         calendar.add(Calendar.DAY_OF_MONTH,Integer.MAX_VALUE);
 
+        // RECUPERER LA DATE DEPUIS CALENDAR ACTIVITY
         intentFromCalendar = getIntent();
         dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
 
         if(dateSelected!= 0){
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             String dateString = formatter.format(new Date(dateSelected));
-            datepickertxtview.setText("" + dateString);
+            datepickertxtview.setText(dateString);
         }
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -342,9 +353,12 @@ public class EventActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... progress) {
 
             try {
+
                 JSONObject root = new JSONObject(progress[0]);
-                SimpleDateFormat sdf_JSON = new SimpleDateFormat("dd.MM.yyyy");
-                String dateSelectedString = sdf_JSON.format(dateSelected);
+                //SimpleDateFormat sdf_JSON = new SimpleDateFormat("dd.MM.yyyy");
+                //String dateSelectedString = sdf_JSON.format(dateSelected);
+                String[] tab = datepickertxtview.getText().toString().split("/");
+                String dateSelectedString = tab[0]+"."+tab[1]+"."+tab[2];
 
                 JSONObject day_0 = root.getJSONObject("fcst_day_0");
 
