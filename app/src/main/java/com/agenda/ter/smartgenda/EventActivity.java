@@ -5,21 +5,17 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -75,12 +71,13 @@ public class EventActivity extends AppCompatActivity {
     private ImageView iconMeteo;
     private TextView locationName;
 
-    private CalendarView calendar2;
-    private Date selectedDate;
-    Spinner spinner;
     private ProgressBar meteoPbar;
 
     Intent intentFromCalendar;
+    private Boolean eventMode;
+    private int editEventId;
+    private Location mEditLocation;
+
     private Location location;
 
     //LAT ET LON DE L EVENEMENT
@@ -121,9 +118,7 @@ public class EventActivity extends AppCompatActivity {
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
 
-        //******** MES
         locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
-
 
         //CACHER PROGRESSBAR
         meteoPbar.setVisibility(View.GONE);
@@ -152,12 +147,21 @@ public class EventActivity extends AppCompatActivity {
 
         // RECUPERER LA DATE DEPUIS CALENDAR ACTIVITY
         intentFromCalendar = getIntent();
-        dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
+        eventMode = intentFromCalendar.getBooleanExtra(CalendarActivity.EXTRA_EVENT_MODE,false);
 
-        if(dateSelected!= 0){
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-            String dateString = formatter.format(new Date(dateSelected));
-            datepickertxtview.setText(dateString);
+        //Mode Edition
+        if(eventMode){
+            editEventId = intentFromCalendar.getIntExtra(CalendarActivity.EXTRA_EVENT_ID,0);
+            new GetEventTask(EventActivity.this).execute(""+editEventId);
+        }
+        //Mode Ajout
+        else{
+            dateSelected = intentFromCalendar.getLongExtra(CalendarActivity.EXTRA_SELECTED_DATE, 0);
+            if(dateSelected!= 0){
+                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                String dateString = formatter.format(new Date(dateSelected));
+                datepickertxtview.setText(dateString);
+            }
         }
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -190,7 +194,6 @@ public class EventActivity extends AppCompatActivity {
         return Text;
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
@@ -216,11 +219,26 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    private void fillEventActivityFields(Event event) {
+        nameEvent.setText(event.getmEventName());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String dateString = formatter.format(event.getmEventDate());
+        datepickertxtview.setText(dateString);
+        hour_picked_text_view.setText(event.getmEventTime());
+        desc_even.setText(event.getmEventDescription());
+        new GetLocationTask(this).execute(""+event.getmEventLocationId());
+    }
+
+    private void fillLocationNameInEditMode(Location loc){
+        locationLatLngTextView.setText(loc.getmLocationName());
+        meteoPicked.setText(loc.getmMeteoTemperature()+"° C");
+        changeProgressBarVisibility();
+        new ImageLoadTask(loc.getmMeteoIcon(), iconMeteo).execute();
+    }
 
     public void showDatePicker(View view) {
         dpd.show();
     }
-
 
     public void goToMapsActivity(View view) {
         Intent intent = new Intent(this, MapsActivity.class);
@@ -240,8 +258,6 @@ public class EventActivity extends AppCompatActivity {
             meteoPbar.setVisibility(View.VISIBLE);
     }
 
-
-
     // TIME PICKER ET QUE TIME PICKER :)
 
     //AFFICHER LE TIME PICKER
@@ -249,6 +265,7 @@ public class EventActivity extends AppCompatActivity {
         DialogFragment newFragment = new TimePickerFragment();
         newFragment.show(getFragmentManager(),"TimePicker");
     }
+
     public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
         private int hourSys,minuteSys;
@@ -285,7 +302,6 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
-
     public void saveEvent(View v) throws ParseException {
         if (nameEvent.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
@@ -300,32 +316,31 @@ public class EventActivity extends AppCompatActivity {
             return;
         }
 
-        // Add Location
-        new InsertLocationTask(this).execute(
-                locationName.getText().toString(),
-                meteoPicked.getText().toString(),
-                longitudeCity,
-                latitudeCity,
-                iconPath
-
-        );
-
-        new InsertEventTask(this).execute(
-                nameEvent.getText().toString(),
-                datepickertxtview.getText().toString(),
-                hour_picked_text_view.getText().toString(),
-                desc_even.getText().toString(),
-                idLocation
-
-        );
-
-        //Log.d("Location Id : ",idLocation);
-
-        Toast.makeText(this,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
-        finish();
+        if(eventMode){
+            new UpdateLocationTask(EventActivity.this).execute(
+                    ""+mEditLocation.getmLocationId(),
+                    locationLatLngTextView.getText().toString(),
+                    meteoPicked.getText().toString(),
+                    longitudeCity,
+                    latitudeCity,
+                    iconPath
+            );
+        }
+        else{
+            // Add Location
+            new InsertLocationTask(this).execute(
+                    locationLatLngTextView.getText().toString(),
+                    meteoPicked.getText().toString(),
+                    longitudeCity,
+                    latitudeCity,
+                    iconPath
+            );
+        }
     }
 
-    // CLASSES ASYNCHRONES POUR LA REQUETE HTTP
+    /*CLASSES ASYNCHRONES POUR REQUÊTES HTTP et SQL*/
+
+    /*REQUÊTES GET*/
     public class MyAsyncTaskgetNews extends AsyncTask<String, String, String> {
 
         private float temp;
@@ -380,8 +395,6 @@ public class EventActivity extends AppCompatActivity {
                         findPrevison = true;
                         temp = (d.getInt("tmin") + d.getInt("tmax")) / 2;
                         iconPath = d.getString("icon");
-                        Log.d("TMP", "" + temp);
-                        Log.d("ICON", iconPath);
                         new ImageLoadTask(iconPath, iconMeteo).execute();
                         return;
                     }
@@ -437,6 +450,157 @@ public class EventActivity extends AppCompatActivity {
 
     }
 
+    public class GetEventTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+        private Event event;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetEventTask(EventActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM event
+            String[] projection = {
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID
+            };
+
+            /*(WHERE Date = date_of_the_day)*/
+            //WHERE clause column
+            String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID+ "=?";
+
+            //WHERE clause values
+            String[] selectionArgs = {params[0]};
+
+
+            Cursor queryResult = db.query(
+                    EventContract.EventEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+                int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
+                String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
+                String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
+                String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
+                int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
+                int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
+
+                event = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
+            }
+
+            queryResult.close();
+            return params[0];
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            fillEventActivityFields(event);
+        }
+    }
+
+    public class GetLocationTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+        private Location location;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetLocationTask(EventActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM Location
+            String[] projection = {
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME,
+                    LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE,
+                    LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON
+            };
+
+            /*(WHERE id = _id_)*/
+            //WHERE clause column
+            String selection = LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID+ "=?";
+
+            //WHERE clause values
+            String[] selectionArgs = {params[0]};
+
+
+            Cursor queryResult = db.query(
+                    LocationContract.LocationEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+                int _id = queryResult.getInt(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID));
+                String _name = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME));
+                float _temperature = queryResult.getFloat(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE));
+                double _latitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE));
+                double _longitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE));
+                String _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
+
+                location = new Location(_id,_name,_temperature,_latitude,_longitude,_icon);
+            }
+
+            queryResult.close();
+            return location.getmLocationName();
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            mEditLocation = location;
+            fillLocationNameInEditMode(location);
+        }
+    }
+
+    /*REQUÊTES INSERT*/
+
     public class InsertEventTask extends  AsyncTask<String, Void, Void>{
 
         /** progress dialog to show user that the backup is processing. */
@@ -470,16 +634,13 @@ public class EventActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            Log.d("YOLO MILLI",""+dateParse.getTime());
-            Log.d("DATE",new SimpleDateFormat("dd/MM/yyyy hh:mm").format(dateParse));
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,dateParse.getTime());
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[2]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[3]);
-            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,0);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[4]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
 
-            long newRowId;
-            newRowId = db.insert(
+            db.insert(
                     EventContract.EventEntry.TABLE_NAME,
                     null,
                     values);
@@ -492,10 +653,11 @@ public class EventActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dialog.dismiss();
             dbHelper.close();
+            Toast.makeText(activity,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
+            activity.finish();
         }
     }
 
-    // InsertLocationTask MES***********
     public class InsertLocationTask extends  AsyncTask<String, Void, Void>{
 
         /** progress dialog to show user that the backup is processing. */
@@ -524,12 +686,12 @@ public class EventActivity extends AppCompatActivity {
             values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE,params[1]);
             values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE,params[2]);
             values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE,params[3]);
-            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON,0);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON,params[4]);
 
 
             long newRowId;
             newRowId = db.insert(
-                   LocationContract.LocationEntry.TABLE_NAME,
+                    LocationContract.LocationEntry.TABLE_NAME,
                     null,
                     values);
             idLocation =  String.valueOf(newRowId);
@@ -541,6 +703,134 @@ public class EventActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dialog.dismiss();
             dbHelper.close();
+            new InsertEventTask(EventActivity.this).execute(
+                    nameEvent.getText().toString(),
+                    datepickertxtview.getText().toString(),
+                    hour_picked_text_view.getText().toString(),
+                    desc_even.getText().toString(),
+                    idLocation
+            );
+        }
+    }
+
+    /*REQUÊTES UPDATE*/
+
+    public class UpdateEventTask extends  AsyncTask<String, Void, Void>{
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        private EventActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public UpdateEventTask(EventActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Mise à jour...");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            ContentValues values = new ContentValues();
+
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,params[1]);
+
+            SimpleDateFormat sdf_DATE = new SimpleDateFormat("dd/MM/yyyy");
+            Date dateParse = null;
+            try {
+                dateParse = sdf_DATE.parse(params[2]);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,dateParse.getTime());
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[3]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[4]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[5]);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
+
+            // Which row to update, based on the ID
+            String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
+            String[] selectionArgs = {params[0]};
+
+            db.update(
+                    EventContract.EventEntry.TABLE_NAME,
+                    values,
+                    selection,
+                    selectionArgs);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            Toast.makeText(activity,"Événement modifié avec succés !",Toast.LENGTH_SHORT).show();
+            activity.finish();
+        }
+    }
+
+    public class UpdateLocationTask extends  AsyncTask<String, Void, Void>{
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        private EventActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public UpdateLocationTask(EventActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Mise à jour du lieu...");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            ContentValues values = new ContentValues();
+
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME,params[1]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE,params[2]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE,params[3]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE,params[4]);
+            values.put(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON,params[5]);
+
+            // Which row to update, based on the ID
+            String selection = LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID + " LIKE ?";
+            String[] selectionArgs = {params[0]};
+
+            db.update(
+                    LocationContract.LocationEntry.TABLE_NAME,
+                    values,
+                    selection,
+                    selectionArgs);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            new UpdateEventTask(EventActivity.this).execute(
+                    ""+editEventId,
+                    nameEvent.getText().toString(),
+                    datepickertxtview.getText().toString(),
+                    hour_picked_text_view.getText().toString(),
+                    desc_even.getText().toString(),
+                    ""+mEditLocation.getmLocationId()
+            );
         }
     }
 

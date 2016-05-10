@@ -4,13 +4,15 @@ package com.agenda.ter.model;
  * Created by Giyomm on 25/04/2016.
  */
 public class Location {
+    private int mLocationId;
     private String mLocationName;
     private float mMeteoTemperature;
     private Double mLocationLatitude;
     private Double mLocationLongitude;
     private String mMeteoIcon;
 
-    public Location(String mLocationName, float mMeteoTemperature, Double mLocationLatitude, Double mLocationLongitude, String mMeteoIcon) {
+    public Location(int mLocationId, String mLocationName, float mMeteoTemperature, Double mLocationLatitude, Double mLocationLongitude, String mMeteoIcon) {
+        this.mLocationId = mLocationId;
         this.mLocationName = mLocationName;
         this.mMeteoTemperature = mMeteoTemperature;
         this.mLocationLatitude = mLocationLatitude;
@@ -22,6 +24,14 @@ public class Location {
         this.mLocationName = mLocationName;
         this.mLocationLatitude = mLocationLatitude;
         this.mLocationLongitude = mLocationLongitude;
+    }
+
+    public int getmLocationId() {
+        return mLocationId;
+    }
+
+    public void setmLocationId(int mLocationId) {
+        this.mLocationId = mLocationId;
     }
 
     public String getmLocationName() {

@@ -33,6 +33,9 @@ import java.util.List;
 public class CalendarActivity extends AppCompatActivity {
 
     public final static String EXTRA_SELECTED_DATE = "com.agenda.ter.smartgenda.SELECTED_DATE";
+    //false -> Mode ajout || true -> Mode edition
+    public final static String EXTRA_EVENT_MODE = "com.agenda.ter.smartgenda.EVENT_MODE";
+    public final static String EXTRA_EVENT_ID = "com.agenda.ter.smartgenda.EVENT_ID";
 
     //The UI Calendar View
     private com.agenda.ter.smartgenda.CalendarView mCalendarView;
@@ -108,6 +111,7 @@ public class CalendarActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent(CalendarActivity.this, EventActivity.class);
                         intent.putExtra(EXTRA_SELECTED_DATE,selectedDate.getTime());
+                        intent.putExtra(EXTRA_EVENT_MODE,false);
                         startActivity(intent);
                     }
                 });
@@ -117,6 +121,7 @@ public class CalendarActivity extends AppCompatActivity {
 
     public void goToEventActivity(View view) {
         Intent intent = new Intent(this, EventActivity.class);
+        intent.putExtra(EXTRA_EVENT_MODE,false);
         startActivity(intent);
     }
 
@@ -169,6 +174,17 @@ public class CalendarActivity extends AppCompatActivity {
 
                     eventDayList.remove(e);
                     notifyDataSetChanged();
+                }
+            });
+
+            edit_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int id = e.getmEventId();
+                    Intent intent = new Intent(CalendarActivity.this, EventActivity.class);
+                    intent.putExtra(EXTRA_EVENT_MODE,true);
+                    intent.putExtra(EXTRA_EVENT_ID,id);
+                    startActivity(intent);
                 }
             });
 
