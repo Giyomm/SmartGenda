@@ -72,6 +72,12 @@ public class CalendarActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new GetAllEventTask(this).execute();
+    }
+
     private void showDayDialog(final Date selectedDate) {
         AlertDialog.Builder eventDialogBuilder = new AlertDialog.Builder(CalendarActivity.this);
         eventDialogBuilder.setTitle(new SimpleDateFormat("dd/MM/yyyy").format(selectedDate));
@@ -114,19 +120,10 @@ public class CalendarActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void insertEventInHashSet(Event e){
-        ArrayList<Event> tmpHash = mCalendarView.getEventHashSet();
+    public void insertEventInListSet(Event e){
+        ArrayList<Event> tmpHash = mCalendarView.getEventListSet();
         tmpHash.add(e);
-        mCalendarView.setEventHashSet(tmpHash);
-    }
-
-    public void removeEventInHashSet(int id){
-        ArrayList<Event> tmpHash = mCalendarView.getEventHashSet();
-        for (Event e : tmpHash) {
-            if(e.getmEventId() == id)
-                tmpHash.remove(e);
-        }
-        mCalendarView.setEventHashSet(tmpHash);
+        mCalendarView.setEventListSet(tmpHash);
     }
 
     public class EventListAdapter extends ArrayAdapter<Event>{
@@ -182,12 +179,10 @@ public class CalendarActivity extends AppCompatActivity {
     public class GetEventTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
-        private CalendarActivity activity;
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         public GetEventTask(CalendarActivity activity) {
-            this.activity = activity;
             dialog = new ProgressDialog(activity);
         }
 
@@ -260,12 +255,12 @@ public class CalendarActivity extends AppCompatActivity {
     public class DeleteEventTask extends AsyncTask<String, Void, Void>{
 
         private ProgressDialog dialog;
-        private CalendarActivity activity;
+        private CalendarActivity context;
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         public DeleteEventTask(CalendarActivity activity) {
-            this.activity = activity;
+            this.context = activity;
             dialog = new ProgressDialog(activity);
         }
 
@@ -282,7 +277,6 @@ public class CalendarActivity extends AppCompatActivity {
             String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
             String[] selectionArgs = {params[0]};
             db.delete(EventContract.EventEntry.TABLE_NAME, selection, selectionArgs);
-            //removeEventInHashSet(Integer.valueOf(params[0]));
             return null;
         }
 
@@ -291,19 +285,17 @@ public class CalendarActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dbHelper.close();
             dialog.dismiss();
-            mCalendarView.updateCalendar();
+            new GetAllEventTask(context).execute();
         }
     }
 
     public class GetAllEventTask extends AsyncTask<String, Void, Void>{
 
         private ProgressDialog dialog;
-        private CalendarActivity activity;
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         public GetAllEventTask(CalendarActivity activity) {
-            this.activity = activity;
             dialog = new ProgressDialog(activity);
         }
 
@@ -311,6 +303,7 @@ public class CalendarActivity extends AppCompatActivity {
         protected void onPreExecute() {
             dialog.setMessage("Récupération des données");
             dialog.show();
+            mCalendarView.getEventListSet().clear();
         }
 
         @Override
@@ -348,7 +341,7 @@ public class CalendarActivity extends AppCompatActivity {
                 int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
 
                 Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
-                insertEventInHashSet(e);
+                insertEventInListSet(e);
             }
             queryResult.close();
             return null;

@@ -60,7 +60,7 @@ public class CalendarView extends LinearLayout
     private EventHandler eventHandler = null;
 
     //hash set of events
-    private ArrayList<Event> eventHashSet = new ArrayList<>();
+    private ArrayList<Event> eventListSet = new ArrayList<>();
 
     // internal components
     private LinearLayout header;
@@ -111,8 +111,6 @@ public class CalendarView extends LinearLayout
         loadDateFormat(attrs);
         assignUiElements();
         assignClickHandlers();
-
-        updateCalendar();
     }
 
     private void loadDateFormat(AttributeSet attrs)
@@ -228,12 +226,8 @@ public class CalendarView extends LinearLayout
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
 
-        for (Event e : eventHashSet) {
-            Log.d("HASH SET",e.getmEventName());
-        }
-
         // update grid
-        grid.setAdapter(new CalendarAdapter(getContext(), cells, eventHashSet));
+        grid.setAdapter(new CalendarAdapter(getContext(), cells));
 
         // update title
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.FRANCE);
@@ -250,16 +244,12 @@ public class CalendarView extends LinearLayout
 
     private class CalendarAdapter extends ArrayAdapter<Date>
     {
-        // days with events
-        private ArrayList<Event> eventDays;
-
         // for view inflation
         private LayoutInflater inflater;
 
-        public CalendarAdapter(Context context, ArrayList<Date> days, ArrayList<Event> eventDays)
+        public CalendarAdapter(Context context, ArrayList<Date> days)
         {
             super(context, R.layout.control_calendar_day, days);
-            this.eventDays = eventDays;
             inflater = LayoutInflater.from(context);
         }
 
@@ -278,21 +268,6 @@ public class CalendarView extends LinearLayout
             // inflate item if it does not exist yet
             if (view == null)
                 view = inflater.inflate(R.layout.control_calendar_day, parent, false);
-
-            // if this day has an event, specify event image
-            view.setBackgroundResource(0);
-            for (Event event : eventDays)
-            {
-                Date eventDate = event.getmEventDate();
-                if (eventDate.getDate() == day &&
-                        eventDate.getMonth() == month &&
-                        eventDate.getYear() == year)
-                {
-                    // mark this day for event
-                    view.setBackgroundResource(R.drawable.reminder);
-                    break;
-                }
-            }
 
             //Get the cell view
             TextView cell = ((TextView)view);
@@ -320,6 +295,21 @@ public class CalendarView extends LinearLayout
                 cell.setText(String.valueOf(date.getDate()));
             else
                 cell.setText(" ");
+
+            // if this day has an event, specify event image
+            view.setBackgroundResource(0);
+            for (Event event : eventListSet)
+            {
+                Date eventDate = event.getmEventDate();
+                if (eventDate.getDate() == day &&
+                        eventDate.getMonth() == month &&
+                        eventDate.getYear() == year)
+                {
+                    // mark this day for event
+                    cell.setTextColor(Color.GREEN);
+                    break;
+                }
+            }
 
             return view;
         }
@@ -436,11 +426,11 @@ public class CalendarView extends LinearLayout
         dpd.show();
     }
 
-    public ArrayList<Event> getEventHashSet() {
-        return eventHashSet;
+    public ArrayList<Event> getEventListSet() {
+        return eventListSet;
     }
 
-    public void setEventHashSet(ArrayList<Event> eventHashSet) {
-        this.eventHashSet = eventHashSet;
+    public void setEventListSet(ArrayList<Event> eventListSet) {
+        this.eventListSet = eventListSet;
     }
 }
