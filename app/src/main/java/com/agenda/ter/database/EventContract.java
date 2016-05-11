@@ -19,6 +19,7 @@ public final class EventContract {
         public static final String COLUMN_NAME_EVENT_DESCRIPTION = "event_desc";
         public static final String COLUMN_NAME_EVENT_LOCATION_ID = "event_meteo_id";
         public static final String COLUMN_NAME_EVENT_NOTIFICATION_ID = "event_notification_id";
+        public static final String COLUMN_NAME_EVENT_EMAIL = "event_email";
 
         private static final String VARCHAR_TYPE = " VARCHAR";
         private static final String INTEGER_TYPE = " INTEGER";
@@ -34,6 +35,7 @@ public final class EventContract {
                             EventEntry.COLUMN_NAME_EVENT_DESCRIPTION + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_LOCATION_ID + INTEGER_TYPE + COMMA_SEP +
                             EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID + INTEGER_TYPE + COMMA_SEP +
+                            EventEntry.COLUMN_NAME_EVENT_EMAIL + VARCHAR_TYPE + "(255)" + COMMA_SEP +
                             "FOREIGN KEY ("+ EventEntry.COLUMN_NAME_EVENT_LOCATION_ID +
                                 ") REFERENCES "+ LocationContract.LocationEntry.TABLE_NAME + "("+ LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID +")"+
                             "FOREIGN KEY ("+ EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID +

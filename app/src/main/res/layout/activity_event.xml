@@ -78,12 +78,12 @@
                 android:text="@string/event_email_text_view"
                 android:id="@+id/event_email_text_view_id" />
 
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:ems="10"
-                android:id="@+id/event_email_edit_text_id" />
+            <Spinner
+                android:id="@+id/event_spinner_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+
         </LinearLayout>
 
         <LinearLayout

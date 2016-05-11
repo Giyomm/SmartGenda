@@ -9,15 +9,20 @@ public class Event {
 
     private int mEventId;
     private String mEventName;
+    private String mEventEmail;
     private Date mEventDate;
     private String mEventTime;
     private String mEventDescription;
     private int mEventLocationId;
     private int mEventNotificationId;
 
-    public Event(int id, String mEventName, Date mEventDate, String mEventTime,String mEventDescription, int mEventLocation, int mEventNotification) {
+    public Event() {
+    }
+
+    public Event(int id, String mEventName, Date mEventDate, String mEventTime, String mEventDescription, int mEventLocation, int mEventNotification, String mEventEmail) {
         this.mEventId = id;
         this.mEventName = mEventName;
+        this.mEventEmail = mEventEmail;
         this.mEventDate = mEventDate;
         this.mEventTime = mEventTime;
         this.mEventDescription = mEventDescription;
@@ -79,5 +84,13 @@ public class Event {
 
     public void setmEventLocationId(int mEventLocationId) {
         this.mEventLocationId = mEventLocationId;
+    }
+
+    public String getmEventEmail() {
+        return mEventEmail;
+    }
+
+    public void setmEventEmail(String mEventEmail) {
+        this.mEventEmail = mEventEmail;
     }
 }

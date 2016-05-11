@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,7 @@ public class CalendarActivity extends AppCompatActivity {
 
     //Event list for a selected day
     private ArrayList<Event> eventDayList;
+    private ArrayList<Event> nextEventList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +53,7 @@ public class CalendarActivity extends AppCompatActivity {
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
         eventDayList = new ArrayList<>();
+        nextEventList = new ArrayList<>();
 
         mCalendarView = ((com.agenda.ter.smartgenda.CalendarView)findViewById(R.id.calendar_view));
         new GetAllEventTask(this).execute();
@@ -71,12 +74,14 @@ public class CalendarActivity extends AppCompatActivity {
                 new GetEventTask(CalendarActivity.this).execute(""+dateParse.getTime());
             }
         });
+        new GetNextEventTask(CalendarActivity.this).execute();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         new GetAllEventTask(this).execute();
+        new GetNextEventTask(this).execute();
     }
 
     private void showDayDialog(final Date selectedDate) {
@@ -127,6 +132,26 @@ public class CalendarActivity extends AppCompatActivity {
         ArrayList<Event> tmpHash = mCalendarView.getEventListSet();
         tmpHash.add(e);
         mCalendarView.setEventListSet(tmpHash);
+    }
+
+    public void DisplayNextEvent(ArrayList<Event> eventList){
+        long minDate = Long.MAX_VALUE;
+        Event minEvent = new Event();
+        for (Event e : eventList) {
+            if (e.getmEventDate().getTime() < minDate){
+                minDate = e.getmEventDate().getTime();
+                minEvent = e;
+            }else if(e.getmEventDate().getTime()==minDate){
+                String[] hour1 = e.getmEventTime().split(":");
+                String[] hour2 = minEvent.getmEventTime().split(":");
+
+                if(Integer.valueOf(hour1[0]) < Integer.valueOf(hour2[0]) ){
+                    minEvent = e;
+                }
+            }
+
+        }
+        Log.d("min date event",minEvent.getmEventName());
     }
 
     public class EventListAdapter extends ArrayAdapter<Event>{
@@ -219,7 +244,8 @@ public class CalendarActivity extends AppCompatActivity {
                     EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
-                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL
             };
 
             /*(WHERE Date = date_of_the_day)*/
@@ -243,13 +269,14 @@ public class CalendarActivity extends AppCompatActivity {
             while (queryResult.moveToNext()) {
                 int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
                 String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                String _email = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL));
                 Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
                 String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
                 String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
                 int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
                 int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
 
-                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
+                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id,_email);
                 eventDayList.add(e);
             }
 
@@ -332,7 +359,8 @@ public class CalendarActivity extends AppCompatActivity {
                     EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
-                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL
             };
 
             Cursor queryResult = db.query(
@@ -348,13 +376,14 @@ public class CalendarActivity extends AppCompatActivity {
             while (queryResult.moveToNext()) {
                 int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
                 String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                String _email = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL));
                 Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
                 String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
                 String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
                 int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
                 int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
 
-                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
+                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id,_email);
                 insertEventInListSet(e);
             }
             queryResult.close();
@@ -368,6 +397,74 @@ public class CalendarActivity extends AppCompatActivity {
             dbHelper.close();
             mCalendarView.updateCalendar();
         }
+    }
+
+    public class GetNextEventTask extends AsyncTask<String, Void, Void>{
+
+        private ProgressDialog dialog;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetNextEventTask(CalendarActivity activity) {
+            dialog = new ProgressDialog(activity);
+            nextEventList.clear();
+        }
+
+
+
+        @Override
+        protected Void doInBackground(String... params) {
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM event
+            String[] projection = {
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL
+            };
+
+
+            Cursor queryResult = db.query(
+                    EventContract.EventEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    null,                                // The columns for the WHERE clause
+                    null,                                     // The values for the WHERE clause
+                    null,                                       // group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+                int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
+                String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                String _email = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL));
+                Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
+                String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
+                String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
+                int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
+                int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
+
+                Event e = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id,_email);
+                nextEventList.add(e);
+            }
+            queryResult.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if(nextEventList.size()>0){
+                DisplayNextEvent(nextEventList);
+            }
+        }
+
+
     }
 
 }

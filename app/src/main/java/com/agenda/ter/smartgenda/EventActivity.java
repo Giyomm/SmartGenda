@@ -1,5 +1,7 @@
 package com.agenda.ter.smartgenda;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -19,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -72,6 +75,8 @@ public class EventActivity extends AppCompatActivity {
     private TextView locationName;
     private EditText emailEditText;
     private Spinner notificationSpinner;
+    private Spinner spinnerEmail;
+
     private ProgressBar meteoPbar;
 
     Intent intentFromCalendar;
@@ -123,7 +128,7 @@ public class EventActivity extends AppCompatActivity {
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
         locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
-        emailEditText = (EditText)findViewById(R.id.event_email_edit_text_id);
+        spinnerEmail = (Spinner)findViewById(R.id.event_spinner_email);
 
         //CACHER PROGRESSBAR
         meteoPbar.setVisibility(View.GONE);
@@ -168,13 +173,25 @@ public class EventActivity extends AppCompatActivity {
                 datepickertxtview.setText(dateString);
             }
         }
+        SpinnerEmail();
+    }
 
-        //CHECK CONNEXION
-        ConnectivityManager cm = (ConnectivityManager) this .getSystemService(this.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        if(!isConnected) Toast.makeText(this,"Veuillez activer votre connexion internet",Toast.LENGTH_SHORT).show();
 
+    //Recuperer les emails du terminal et remplir le spinner avec les emails trouvés
+    public void SpinnerEmail(){
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+        Account[] accounts = AccountManager.get(this).getAccounts();
+        ArrayList<String> emailList = new ArrayList<>();
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                String possibleEmail = account.name;
+                emailList.add(possibleEmail);
+            }
+        }
+        //Remplir le spinner
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, emailList);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerEmail.setAdapter(arrayAdapter);
     }
 
     public String Stream2String(InputStream inputStream) {
@@ -323,16 +340,6 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
-    public boolean emailValidator(String email)
-    {
-        Pattern pattern;
-        Matcher matcher;
-        final String EMAIL_PATTERN = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-        pattern = Pattern.compile(EMAIL_PATTERN);
-        matcher = pattern.matcher(email);
-        return matcher.matches();
-    }
-
     public void saveEvent(View v) throws ParseException {
         if (nameEvent.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
@@ -344,10 +351,6 @@ public class EventActivity extends AppCompatActivity {
         }
         if (hour_picked_text_view.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez l'heure !", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if(!emailValidator(emailEditText.getText().toString())){
-            Toast.makeText(this,"Email non valide !",Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -514,7 +517,8 @@ public class EventActivity extends AppCompatActivity {
                     EventContract.EventEntry.COLUMN_NAME_EVENT_DATE,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,
                     EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,
-                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,
+                    EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL
             };
 
             /*(WHERE Date = date_of_the_day)*/
@@ -538,13 +542,14 @@ public class EventActivity extends AppCompatActivity {
             while (queryResult.moveToNext()) {
                 int _id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_ID));
                 String _name = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME));
+                String _email = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL));
                 Date _date = new Date(Long.valueOf(queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DATE))));
                 String _time = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME));
                 String _desc = queryResult.getString(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION));
                 int _location_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID));
                 int _notification_id = queryResult.getInt(queryResult.getColumnIndex(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID));
 
-                event = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id);
+                event = new Event(_id,_name,_date,_time,_desc,_location_id,_notification_id,_email);
             }
 
             queryResult.close();
@@ -738,6 +743,7 @@ public class EventActivity extends AppCompatActivity {
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[3]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[4]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,getSelectedSmartNotifId());
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL,params[5]);
 
             db.insert(
                     EventContract.EventEntry.TABLE_NAME,
@@ -807,7 +813,8 @@ public class EventActivity extends AppCompatActivity {
                     datepickertxtview.getText().toString(),
                     hour_picked_text_view.getText().toString(),
                     desc_even.getText().toString(),
-                    idLocation
+                    idLocation,
+                    spinnerEmail.getSelectedItem().toString()
             );
         }
     }
@@ -839,6 +846,7 @@ public class EventActivity extends AppCompatActivity {
 
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NAME,params[1]);
 
+
             SimpleDateFormat sdf_DATE = new SimpleDateFormat("dd/MM/yyyy");
             Date dateParse = null;
             try {
@@ -851,6 +859,7 @@ public class EventActivity extends AppCompatActivity {
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[4]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[5]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,getSelectedSmartNotifId());
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL,params[6]);
 
             // Which row to update, based on the ID
             String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";
@@ -928,7 +937,8 @@ public class EventActivity extends AppCompatActivity {
                     datepickertxtview.getText().toString(),
                     hour_picked_text_view.getText().toString(),
                     desc_even.getText().toString(),
-                    ""+mEditLocation.getmLocationId()
+                    ""+mEditLocation.getmLocationId(),
+                    spinnerEmail.getSelectedItem().toString()
             );
         }
     }
