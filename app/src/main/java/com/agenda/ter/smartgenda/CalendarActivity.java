@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,13 +18,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.agenda.ter.database.EventContract;
+import com.agenda.ter.database.LocationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Event;
+import com.agenda.ter.model.Location;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,10 +55,24 @@ public class CalendarActivity extends AppCompatActivity {
     private ArrayList<Event> eventDayList;
     private ArrayList<Event> nextEventList;
 
+    //LES WIDGETS ****YASSINE AMIN****
+    TextView nextEventName, nextEventDate, nextEventDesc, nextEventHour, nextEventLocation, nextEventTemperature;
+    Button nextEventButtonMaps;
+    ImageView nextEventIcon;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+
+        nextEventName = (TextView)findViewById(R.id.calendar_next_name_id);
+        nextEventDate = (TextView)findViewById(R.id.calendar_next_date_id);
+        nextEventDesc = (TextView)findViewById(R.id.calendar_next_desc_id);
+        nextEventHour = (TextView)findViewById(R.id.calendar_next_hour_id);
+        nextEventLocation = (TextView)findViewById(R.id.calendar_next_location_id);
+        nextEventTemperature = (TextView)findViewById(R.id.calendar_next_temperature_id);
+        nextEventButtonMaps = (Button)findViewById(R.id.calendar_next_button_maps_id);
+        nextEventIcon = (ImageView)findViewById(R.id.calendar_next_icon_id);
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
         eventDayList = new ArrayList<>();
@@ -74,6 +97,8 @@ public class CalendarActivity extends AppCompatActivity {
                 new GetEventTask(CalendarActivity.this).execute(""+dateParse.getTime());
             }
         });
+
+        nextEventButtonMaps.setVisibility(View.GONE);
         new GetNextEventTask(CalendarActivity.this).execute();
     }
 
@@ -152,6 +177,20 @@ public class CalendarActivity extends AppCompatActivity {
 
         }
         Log.d("min date event",minEvent.getmEventName());
+        nextEventName.setText(minEvent.getmEventName().toString());
+        nextEventHour.setText(minEvent.getmEventTime().toString());
+        nextEventDesc.setText(minEvent.getmEventDescription().toString());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String dateString = formatter.format(minEvent.getmEventDate());
+        nextEventDate.setText(dateString);
+        nextEventButtonMaps.setVisibility(View.VISIBLE);
+        new GetLocationTask(this).execute(minEvent.getmEventLocationId()+"");
+    }
+
+    public void fillNextEventLocation(Location location){
+        nextEventLocation.setText(location.getmLocationName());
+        nextEventTemperature.setText(location.getmMeteoTemperature()+" °C");
+        new ImageLoadTask(location.getmMeteoIcon(),nextEventIcon).execute();
     }
 
     public class EventListAdapter extends ArrayAdapter<Event>{
@@ -198,6 +237,7 @@ public class CalendarActivity extends AppCompatActivity {
 
                     eventDayList.remove(e);
                     notifyDataSetChanged();
+                    new GetNextEventTask(CalendarActivity.this).execute();
                 }
             });
 
@@ -465,6 +505,114 @@ public class CalendarActivity extends AppCompatActivity {
             }
         }
 
+
+    }
+
+    public class GetLocationTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+        private Location location;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetLocationTask(CalendarActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM Location
+            String[] projection = {
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME,
+                    LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE,
+                    LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE,
+                    LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON
+            };
+
+            /*(WHERE id = _id_)*/
+            //WHERE clause column
+            String selection = LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID+ "=?";
+
+            //WHERE clause values
+            String[] selectionArgs = {params[0]};
+
+
+            Cursor queryResult = db.query(
+                    LocationContract.LocationEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+                int _id = queryResult.getInt(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_ID));
+                String _name = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_NAME));
+                float _temperature = queryResult.getFloat(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE));
+                double _latitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE));
+                double _longitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE));
+                String _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
+
+                location = new Location(_id,_name,_temperature,_latitude,_longitude,_icon);
+            }
+
+            queryResult.close();
+            return location.getmLocationName();
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            fillNextEventLocation(location);
+        }
+    }
+
+    public class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
+
+        private String url;
+        private ImageView imageView;
+
+        public ImageLoadTask(String url, ImageView imageView) {
+            this.url = url;
+            this.imageView = imageView;
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            try {
+                URL urlConnection = new URL(url);
+                HttpURLConnection connection = (HttpURLConnection) urlConnection
+                        .openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                return myBitmap;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            super.onPostExecute(result);
+            imageView.setImageBitmap(result);
+        }
 
     }
 

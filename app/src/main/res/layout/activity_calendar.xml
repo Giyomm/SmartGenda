@@ -44,7 +44,8 @@
         android:layout_width="match_parent"
         android:background="#8d9698"
         android:layout_height="0dp"
-        android:layout_weight="0.2">
+        android:layout_weight="0.25"
+        android:weightSum="1">
 
         <TextView
             android:layout_width="match_parent"
@@ -55,6 +56,85 @@
             android:gravity="center_horizontal"
             android:textColor="#eef4f6"
             android:textSize="22sp" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_name_id" />
+
+            <TextView
+
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_desc_id" />
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_date_id" />
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_hour_id" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_location_id" />
+
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_temperature_id" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:id="@+id/calendar_next_icon_id" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:text="Trajet"
+                android:layout_height="wrap_content"
+                android:id="@+id/calendar_next_button_maps_id" />
+        </LinearLayout>
 
     </LinearLayout>
 
