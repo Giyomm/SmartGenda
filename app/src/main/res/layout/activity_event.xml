@@ -28,14 +28,32 @@
             android:background="#b0c429"
             android:layout_weight="0.1" />
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1">
+
         <TextView
             android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Nom de l&apos;événement"
             android:id="@+id/nom_even_textview_id"
-            android:layout_weight="0.1" />
+            android:layout_weight="0.5" />
+
+        <TextView
+            android:textStyle="bold"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="*"
+            android:layout_weight="0.32"
+            android:textColor="#fb0909"
+            android:layout_marginRight="0dp" />
+
+        </LinearLayout>
 
         <EditText
             android:layout_width="match_parent"
@@ -100,7 +118,18 @@
                 android:background="@mipmap/calendar_icon"
                 android:onClick="showDatePicker"
 
-                android:id="@+id/date_even_butonimage_id" />
+                android:id="@+id/date_even_butonimage_id"
+                android:layout_marginRight="55dp" />
+
+            <TextView
+                android:textStyle="bold"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="*"
+                android:layout_weight="0.5"
+                android:textColor="#fb0909" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -134,7 +163,17 @@
                 android:contentDescription="@string/calendar_title_activity_calendar"
                 android:background="@mipmap/ic_clock"
                 android:onClick="showTimePicker"
-                android:id="@+id/event_hourpicker_image_buton_id" />
+                android:id="@+id/event_hourpicker_image_buton_id"
+                android:layout_marginRight="30dp" />
+
+            <TextView
+                android:textStyle="bold"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="*"
+                android:layout_weight="0.5"
+                android:textColor="#fb0909" />
 
         </LinearLayout>
 

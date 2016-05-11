@@ -9,16 +9,19 @@ import java.util.ArrayList;
  */
 public class SmartNotification {
 
+    private int mSmartNotificationId;
     private String mSmartNotificationName;
-    private Color mSmartNotificationColor;
+    private int  mSmartNotificationRed;
+    private int  mSmartNotificationGreen;
+    private int  mSmartNotificationBlue;
     private String mSmartNotificationSound;
-    private ArrayList<Reminder> mReminderList;
 
-    public SmartNotification(String mSmartNotificationName, Color mSmartNotificationColor, String mSmartNotificationSound) {
+    public SmartNotification(int mSmartNotificationId, String mSmartNotificationName, int mSmartNotificationRed, int mSmartNotificationGreen, int mSmartNotificationBlue) {
+        this.mSmartNotificationId = mSmartNotificationId;
         this.mSmartNotificationName = mSmartNotificationName;
-        this.mSmartNotificationColor = mSmartNotificationColor;
-        this.mSmartNotificationSound = mSmartNotificationSound;
-        this.mReminderList = new ArrayList<>();
+        this.mSmartNotificationRed = mSmartNotificationRed;
+        this.mSmartNotificationGreen = mSmartNotificationGreen;
+        this.mSmartNotificationBlue = mSmartNotificationBlue;
     }
 
     public String getmSmartNotificationName() {
@@ -29,12 +32,28 @@ public class SmartNotification {
         this.mSmartNotificationName = mSmartNotificationName;
     }
 
-    public Color getmSmartNotificationColor() {
-        return mSmartNotificationColor;
+    public int getmSmartNotificationRed() {
+        return mSmartNotificationRed;
     }
 
-    public void setmSmartNotificationColor(Color mSmartNotificationColor) {
-        this.mSmartNotificationColor = mSmartNotificationColor;
+    public void setmSmartNotificationRed(int mSmartNotificationRed) {
+        this.mSmartNotificationRed = mSmartNotificationRed;
+    }
+
+    public int getmSmartNotificationGreen() {
+        return mSmartNotificationGreen;
+    }
+
+    public void setmSmartNotificationGreen(int mSmartNotificationGreen) {
+        this.mSmartNotificationGreen = mSmartNotificationGreen;
+    }
+
+    public int getmSmartNotificationBlue() {
+        return mSmartNotificationBlue;
+    }
+
+    public void setmSmartNotificationBlue(int mSmartNotificationBlue) {
+        this.mSmartNotificationBlue = mSmartNotificationBlue;
     }
 
     public String getmSmartNotificationSound() {
@@ -45,11 +64,16 @@ public class SmartNotification {
         this.mSmartNotificationSound = mSmartNotificationSound;
     }
 
-    public ArrayList<Reminder> getmReminderList() {
-        return mReminderList;
+    public int getmSmartNotificationId() {
+        return mSmartNotificationId;
     }
 
-    public void setmReminderList(ArrayList<Reminder> mReminderList) {
-        this.mReminderList = mReminderList;
+    public void setmSmartNotificationId(int mSmartNotificationId) {
+        this.mSmartNotificationId = mSmartNotificationId;
+    }
+
+    @Override
+    public String toString() {
+        return mSmartNotificationName;
     }
 }

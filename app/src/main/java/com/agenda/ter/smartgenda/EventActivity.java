@@ -22,11 +22,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -37,9 +34,11 @@ import android.widget.Toast;
 
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
+import com.agenda.ter.database.NotificationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Event;
 import com.agenda.ter.model.Location;
+import com.agenda.ter.model.SmartNotification;
 
 import org.json.JSONObject;
 
@@ -54,7 +53,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.SimpleTimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,16 +64,14 @@ public class EventActivity extends AppCompatActivity {
     public DatePickerDialog dpd;
     private EditText nameEvent;
     private TextView locationLatLngTextView;
-    private ImageButton datepick;
     private EditText desc_even;
     private static TextView hour_picked_text_view;
-    private Button saveEventButton;
     public static TextView datepickertxtview;
     private TextView meteoPicked;
     private ImageView iconMeteo;
     private TextView locationName;
     private EditText emailEditText;
-
+    private Spinner notificationSpinner;
     private ProgressBar meteoPbar;
 
     Intent intentFromCalendar;
@@ -102,6 +98,8 @@ public class EventActivity extends AppCompatActivity {
     //DATABASE
     private SmartgendaDbHelper dbHelper;
 
+    ArrayList<SmartNotification> listNotif = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // enlever le focus ***MES
@@ -112,13 +110,15 @@ public class EventActivity extends AppCompatActivity {
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
 
-        datepick = (ImageButton) findViewById(R.id.date_even_butonimage_id);
+        Log.d("NOTIF","ON CREATE");
+        new GetSmartNotifTask(this).execute();
+
         desc_even = (EditText) findViewById(R.id.desc_even_edittextt_id);
         nameEvent = (EditText) findViewById(R.id.nom_even_edittext_id);
         locationLatLngTextView = (TextView) findViewById(R.id.event_location_texteview_id);
         datepickertxtview = (TextView) findViewById(R.id.datepicker_textview_id);
         hour_picked_text_view = (TextView) findViewById(R.id.event_hourpicker_textview_id);
-        saveEventButton = (Button)findViewById(R.id.event_saveEvent_bouton_id);
+        notificationSpinner = (Spinner) findViewById(R.id.spinner);
         meteoPbar = (ProgressBar)findViewById(R.id.event_weather_progressbar_id);
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
@@ -168,15 +168,6 @@ public class EventActivity extends AppCompatActivity {
                 datepickertxtview.setText(dateString);
             }
         }
-
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.priority, android.R.layout.simple_spinner_item);
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
 
         //CHECK CONNEXION
         ConnectivityManager cm = (ConnectivityManager) this .getSystemService(this.CONNECTIVITY_SERVICE);
@@ -246,6 +237,7 @@ public class EventActivity extends AppCompatActivity {
         hour_picked_text_view.setText(event.getmEventTime());
         desc_even.setText(event.getmEventDescription());
         new GetLocationTask(this).execute(""+event.getmEventLocationId());
+        //TODO Get SmartNotification by ID (AsyncTask)
     }
 
     private void fillLocationNameInEditMode(Location loc){
@@ -277,7 +269,17 @@ public class EventActivity extends AppCompatActivity {
             meteoPbar.setVisibility(View.VISIBLE);
     }
 
-    // TIME PICKER ET QUE TIME PICKER :)
+    public void populateSpinner(ArrayList<SmartNotification> list){
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<SmartNotification> adapter = new ArrayAdapter<SmartNotification>(this,R.layout.support_simple_spinner_dropdown_item,list);
+        // Apply the adapter to the spinner
+        notificationSpinner.setAdapter(adapter);
+    }
+
+    public String getSelectedSmartNotifId(){
+        int id = ((SmartNotification)notificationSpinner.getSelectedItem()).getmSmartNotificationId();
+        return String.valueOf(id);
+    }
 
     //AFFICHER LE TIME PICKER
     public void showTimePicker(View v){
@@ -632,6 +634,70 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    public class GetSmartNotifTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetSmartNotifTask(EventActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            Log.d("NOTIF","DO IN BACKGROUND");
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM event
+            String[] projection = {
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE
+            };
+
+            Cursor queryResult = db.query(
+                    NotificationContract.NotificationEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    null,                                // The columns for the WHERE clause
+                    null,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+
+                String id = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID));
+                String nom = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME));
+                String r = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED));
+                String g = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN));
+                String b = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE));
+
+                SmartNotification mynotif = new SmartNotification (Integer.valueOf(id),nom,Integer.valueOf(r),Integer.valueOf(g),Integer.valueOf(b));
+                listNotif.add(mynotif);
+            }
+
+            queryResult.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            populateSpinner(listNotif);
+        }
+    }
+
     /*REQUÊTES INSERT*/
 
     public class InsertEventTask extends  AsyncTask<String, Void, Void>{
@@ -671,7 +737,7 @@ public class EventActivity extends AppCompatActivity {
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[2]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[3]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[4]);
-            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,getSelectedSmartNotifId());
 
             db.insert(
                     EventContract.EventEntry.TABLE_NAME,
@@ -784,7 +850,7 @@ public class EventActivity extends AppCompatActivity {
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_TIME,params[3]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_DESCRIPTION,params[4]);
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_LOCATION_ID,params[5]);
-            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,0);
+            values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,getSelectedSmartNotifId());
 
             // Which row to update, based on the ID
             String selection = EventContract.EventEntry.COLUMN_NAME_EVENT_ID + " LIKE ?";

@@ -38,13 +38,6 @@
     <string name="maps_chercher_bouton">Chercher</string>
     <string name="maps_saveLocation_edittext">Sauvegarder</string>
 
-    <!-- SPINNER -->
-    <string-array name="priority">
-        <item>Basse</item>
-        <item>Commune</item>
-        <item>Urgente</item>
-    </string-array>
-
     <!-- String Notification -->
     <string name="notif_title_activity">Notification</string>
     <string name="Notification_name_textview">Nom de la notification</string>
@@ -57,17 +50,28 @@
     <string name="add_button">+</string>
     <string name="date_textView">Date</string>
     <string name="votre_date_textView">Votre date</string>
-    <string name="heure_textView">Heure</string>
+    <string name="heure_textView">Rappel avant : </string>
     <string name="heure_editText" />
     <string name="enregistrer_button">Enregistrer</string>
     <string name="event_email_text_view">Email :</string>
 
     <!-- Spinner Color -->
     <string-array name="array_name">
-        <item > Bleu </item>
-        <item> Rouge </item>
-        <item> Vert </item>
-        <item> Jaune </item>
+        <item >Bleu</item>
+        <item>Rouge</item>
+        <item>Vert</item>
+        <item>Orange</item>
+        <item>Violet</item>
+    </string-array>
+
+    <!-- Spinner Rappel -->
+    <string-array name="array_rappel">
+        <item >30 min</item>
+        <item>Une heure</item>
+        <item>3 heures</item>
+        <item>6 heures</item>
+        <item>12 heures</item>
+        <item>24 heures</item>
     </string-array>
 
 </resources>

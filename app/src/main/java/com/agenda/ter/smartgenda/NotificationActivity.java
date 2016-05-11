@@ -45,7 +45,7 @@ import java.util.List;
 
 public class NotificationActivity extends AppCompatActivity {
 
-    private String chemin_son;
+    public static String chemin_son;
     private DatePickerDialog dpd;
     private AlertDialog alertDialog;
     private ArrayList<String> list;
@@ -55,6 +55,8 @@ public class NotificationActivity extends AppCompatActivity {
 
     private Spinner spinner;
     String selectedColor;
+    public static String selectedRappel="" ;
+    int codeCouleur=Color.BLUE;
 
 
 
@@ -67,7 +69,7 @@ public class NotificationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification);
 
         ListView listView = (ListView) findViewById(R.id.listView_id);
-        txtInput = (TextView) findViewById(R.id.editText_heure_id);
+      //  txtInput = (TextView) findViewById(R.id.editText_heure_id);
 
         list = new ArrayList<String>();
         adapter = new MyCustomAdapter(list, this);
@@ -98,12 +100,36 @@ public class NotificationActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedColor = (String) parent.getItemAtPosition(position);
+                switch (selectedColor){
+                    case "Bleu" : codeCouleur = Color.BLUE;break;
+                    case "Rouge" : codeCouleur = Color.RED;break;
+                    case "Vert" : codeCouleur = Color.GREEN;break;
+                    case "Orange" : codeCouleur = Color.rgb(237 ,127,16);break;
+                    case "Violet" : codeCouleur = Color.rgb(136 ,6,206);break;
+
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
 
+        //Spinner Rappel
+        Spinner spinnerRappel = (Spinner) findViewById(R.id.spinneRappel);
+        ArrayAdapter<CharSequence> adapterRappel = ArrayAdapter.createFromResource(
+                this, R.array.array_rappel, android.R.layout.simple_spinner_item);
+        adapterRappel.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRappel.setAdapter(adapterRappel);
+        spinnerRappel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedRappel = (String) parent.getItemAtPosition(position);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 
     }
 
@@ -111,20 +137,18 @@ public class NotificationActivity extends AppCompatActivity {
         dpd.show();
     }
 
-    public void showTimePicker(View v){
+  /*  public void showTimePicker(View v){
         DialogFragment newFragment = new TimePickerFragment();
         newFragment.show(getFragmentManager(),"TimePicker");
-    }
+    }*/
 
     public void saveNotification(View view) {
 
         EditText nameEditText= (EditText) findViewById(R.id.editText_nomNotif_id); String name = nameEditText.getText().toString();
-        TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = dateTextView.getText().toString();
-        String heure = txtInput.getText().toString();
+      //  TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = dateTextView.getText().toString();
+      //  String heure = txtInput.getText().toString();
 
         if(name .equals("") || name==null ) {Toast.makeText(getApplicationContext(), "Entrer le nom de la notification !!", Toast.LENGTH_SHORT).show(); return;}
-        if(date == null || date.equals("")) {Toast.makeText(getApplicationContext(), "Entrer la date !!", Toast.LENGTH_SHORT).show();return;}
-        if(heure == null || heure.equals("")) {Toast.makeText(getApplicationContext(), "Entrer l'heure !!", Toast.LENGTH_SHORT).show();return;}
 
         Toast.makeText(getApplicationContext(), "Notification enegistrer avec succée ", Toast.LENGTH_SHORT).show();
 
@@ -136,7 +160,7 @@ public class NotificationActivity extends AppCompatActivity {
     }
 
 
-    public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
+  /*  public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState){
@@ -161,17 +185,25 @@ public class NotificationActivity extends AppCompatActivity {
             tv.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
 
         }
-    }
+    }*/
 
 
     public void AddToList(View v) {
 
-        String newItem = txtInput.getText().toString();
+      /*  String newItem = txtInput.getText().toString();
         if(newItem == ""){Toast.makeText(getApplicationContext(), "Choisir l'eure de l'événement !!", Toast.LENGTH_SHORT).show();}
         else{
             list.add("Rappel "+list.size()+" : "+newItem);
             adapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(), "Rappel à : "+newItem, Toast.LENGTH_SHORT).show();
+        }*/
+
+        String newItem = selectedRappel;
+        if(newItem == ""){Toast.makeText(getApplicationContext(), "Choisir un rappel !!", Toast.LENGTH_SHORT).show();}
+        else{
+            list.add("Rappel avant : "+newItem);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "Rappel avant : "+newItem, Toast.LENGTH_SHORT).show();
         }
 
     }
