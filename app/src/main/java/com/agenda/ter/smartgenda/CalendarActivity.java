@@ -190,7 +190,8 @@ public class CalendarActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     int id = e.getmEventId();
-                    String [] _idStr = {""+id};
+                    int loc_id = e.getmEventLocationId();
+                    String [] _idStr = {""+id,""+loc_id};
 
                     //remove from database (and the hash set)
                     new DeleteEventTask(CalendarActivity.this).execute(_idStr);

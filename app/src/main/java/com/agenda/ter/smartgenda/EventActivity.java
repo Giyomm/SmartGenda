@@ -254,7 +254,7 @@ public class EventActivity extends AppCompatActivity {
         hour_picked_text_view.setText(event.getmEventTime());
         desc_even.setText(event.getmEventDescription());
         new GetLocationTask(this).execute(""+event.getmEventLocationId());
-        //TODO Get SmartNotification by ID (AsyncTask)
+        new GetSmartNotifByIDTask(this).execute(""+event.getmEventNotificationId());
     }
 
     private void fillLocationNameInEditMode(Location loc){
@@ -262,6 +262,13 @@ public class EventActivity extends AppCompatActivity {
         meteoPicked.setText(loc.getmMeteoTemperature()+"° C");
         changeProgressBarVisibility();
         new ImageLoadTask(loc.getmMeteoIcon(), iconMeteo).execute();
+    }
+
+    private void setNotificationSpinner(SmartNotification notif){
+        for (SmartNotification sn : listNotif) {
+            if(sn.getmSmartNotificationId() == notif.getmSmartNotificationId())
+                notificationSpinner.setSelection(listNotif.indexOf(sn));
+        }
     }
 
     public void showDatePicker(View view) {
@@ -656,7 +663,6 @@ public class EventActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            Log.d("NOTIF","DO IN BACKGROUND");
             // Define a projection that specifies which columns from the database
             // you will actually use after this query.
             //SELECT * FROM event
@@ -700,6 +706,76 @@ public class EventActivity extends AppCompatActivity {
             dialog.dismiss();
             dbHelper.close();
             populateSpinner(listNotif);
+        }
+    }
+
+    public class GetSmartNotifByIDTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+        private SmartNotification notification;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetSmartNotifByIDTask(EventActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM event
+            String[] projection = {
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN,
+                    NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE
+            };
+
+            /*(WHERE id = _id_)*/
+            //WHERE clause column
+            String selection = NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID+ "=?";
+
+            //WHERE clause values
+            String[] selectionArgs = {params[0]};
+
+            Cursor queryResult = db.query(
+                    NotificationContract.NotificationEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+
+                String id = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_ID));
+                String nom = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME));
+                String r = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED));
+                String g = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN));
+                String b = queryResult.getString(queryResult.getColumnIndex(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE));
+
+                notification = new SmartNotification (Integer.valueOf(id),nom,Integer.valueOf(r),Integer.valueOf(g),Integer.valueOf(b));
+            }
+
+            queryResult.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            setNotificationSpinner(notification);
         }
     }
 
