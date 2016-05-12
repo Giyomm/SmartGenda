@@ -66,6 +66,7 @@ public class CalendarActivity extends AppCompatActivity {
         setContentView(R.layout.activity_calendar);
 
         nextEventName = (TextView)findViewById(R.id.calendar_next_name_id);
+        nextEventName.setText(R.string.calendar_next_event_no_event);
         nextEventDate = (TextView)findViewById(R.id.calendar_next_date_id);
         nextEventDesc = (TextView)findViewById(R.id.calendar_next_desc_id);
         nextEventHour = (TextView)findViewById(R.id.calendar_next_hour_id);
@@ -120,7 +121,7 @@ public class CalendarActivity extends AppCompatActivity {
         eventDialogBuilder.setView(convertView);
 
         ListView events_list_view = (ListView) convertView.findViewById(R.id.event_list_day_events);
-        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row, eventDayList);
+        EventListAdapter customAdapter = new EventListAdapter(this,R.layout.calendar_list_item_row,eventDayList);
         events_list_view.setAdapter(customAdapter);
 
         eventDialogBuilder.setNegativeButton(
@@ -172,6 +173,9 @@ public class CalendarActivity extends AppCompatActivity {
 
                 if(Integer.valueOf(hour1[0]) < Integer.valueOf(hour2[0]) ){
                     minEvent = e;
+                }else if (Integer.valueOf(hour1[0]) == Integer.valueOf(hour2[0])){
+                    if(Integer.valueOf(hour1[1]) < Integer.valueOf(hour2[1]) )
+                        minEvent = e;
                 }
             }
 
@@ -187,19 +191,31 @@ public class CalendarActivity extends AppCompatActivity {
         new GetLocationTask(this).execute(minEvent.getmEventLocationId()+"");
     }
 
+    public void resetNextEventView(){
+        nextEventName.setText(R.string.calendar_next_event_no_event);
+        nextEventHour.setText("");
+        nextEventDesc.setText("");
+        nextEventDate.setText("");
+        nextEventButtonMaps.setVisibility(View.GONE);
+        nextEventLocation.setText("");
+        nextEventTemperature.setText("");
+        nextEventIcon.setImageBitmap(null);
+    }
+
     public void fillNextEventLocation(Location location){
         nextEventLocation.setText(location.getmLocationName());
         nextEventTemperature.setText(location.getmMeteoTemperature()+" °C");
         new ImageLoadTask(location.getmMeteoIcon(),nextEventIcon).execute();
     }
 
+    /*LIST ADAPTER*/
     public class EventListAdapter extends ArrayAdapter<Event>{
 
         public EventListAdapter(Context context, int resource, List<Event> items) {
             super(context, resource, items);
         }
 
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, final ViewGroup parent) {
 
             View v = convertView;
 
@@ -256,6 +272,7 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /*CLASSES AYNCHRONES POUR REQUÊTES HTTP et SQL*/
     public class GetEventTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -502,6 +519,9 @@ public class CalendarActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             if(nextEventList.size()>0){
                 DisplayNextEvent(nextEventList);
+            }
+            else{
+                resetNextEventView();
             }
         }
 

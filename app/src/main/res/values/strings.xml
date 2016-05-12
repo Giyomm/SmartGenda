@@ -8,6 +8,7 @@
     <string name="calendar_title_activity_calendar">Calendrier</string>
     <string name="calendar_add_event_image_desc">add event button</string>
     <string name="calendar_next_event_title">Prochain évènement</string>
+    <string name="calendar_next_event_no_event">Aucun évènement de prévu…</string>
     <string name="calendar_day_monday">LUN</string>
     <string name="calendar_day_tuesday">MAR</string>
     <string name="calendar_day_wenesday">MER</string>
