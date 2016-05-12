@@ -55,6 +55,7 @@
     <string name="heure_editText" />
     <string name="enregistrer_button">Enregistrer</string>
     <string name="event_email_text_view">Email :</string>
+    <string name="calendar_trajet_buton">Trajet</string>
 
     <!-- Spinner Color -->
     <string-array name="array_name">

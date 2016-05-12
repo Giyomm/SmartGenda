@@ -65,6 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //LAT ET LNG
     double latitude = 0, longitude = 0;
 
+    Intent intentFromCalendar;
 
     // LES WIDGETS DE L'ACTIVITE MAPS
     Button chercherBtn, saveLocationButon;

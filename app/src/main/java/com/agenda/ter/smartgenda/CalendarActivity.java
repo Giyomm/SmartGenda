@@ -1,15 +1,25 @@
 package com.agenda.ter.smartgenda;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Criteria;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.provider.SyncStateContract;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +32,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
@@ -40,6 +51,7 @@ import java.util.List;
 
 public class CalendarActivity extends AppCompatActivity {
 
+    public final static String EXTRA_DESTINATION = "com.agenda.ter.smartgenda.DESTINATION";
     public final static String EXTRA_SELECTED_DATE = "com.agenda.ter.smartgenda.SELECTED_DATE";
     //false -> Mode ajout || true -> Mode edition
     public final static String EXTRA_EVENT_MODE = "com.agenda.ter.smartgenda.EVENT_MODE";
@@ -59,6 +71,8 @@ public class CalendarActivity extends AppCompatActivity {
     TextView nextEventName, nextEventDate, nextEventDesc, nextEventHour, nextEventLocation, nextEventTemperature;
     Button nextEventButtonMaps;
     ImageView nextEventIcon;
+    Event minEvent;
+    double nextEventLatitude, nextEventLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,15 +93,13 @@ public class CalendarActivity extends AppCompatActivity {
         eventDayList = new ArrayList<>();
         nextEventList = new ArrayList<>();
 
-        mCalendarView = ((com.agenda.ter.smartgenda.CalendarView)findViewById(R.id.calendar_view));
+        mCalendarView = ((com.agenda.ter.smartgenda.CalendarView) findViewById(R.id.calendar_view));
         new GetAllEventTask(this).execute();
 
         // assign event handler
-        mCalendarView.setEventHandler(new com.agenda.ter.smartgenda.CalendarView.EventHandler()
-        {
+        mCalendarView.setEventHandler(new com.agenda.ter.smartgenda.CalendarView.EventHandler() {
             @Override
-            public void onDayLongPress(Date date)
-            {
+            public void onDayLongPress(Date date) {
                 SimpleDateFormat sdf_DATE = new SimpleDateFormat("dd/MM/yyyy");
                 Date dateParse = null;
                 try {
@@ -95,12 +107,36 @@ public class CalendarActivity extends AppCompatActivity {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                new GetEventTask(CalendarActivity.this).execute(""+dateParse.getTime());
+                new GetEventTask(CalendarActivity.this).execute("" + dateParse.getTime());
             }
         });
 
         nextEventButtonMaps.setVisibility(View.GONE);
         new GetNextEventTask(CalendarActivity.this).execute();
+
+        if(!checkNetworkConnection()){
+            Toast.makeText(this,"Veuillez activer votre connection internet !",Toast.LENGTH_SHORT).show();
+            final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+            new AlertDialog.Builder(this)
+                    .setTitle("Internet")
+                    .setMessage("Voulez vous activer votre wifi ?")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // continue with delete
+                            wifiManager.setWifiEnabled(true);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // do nothing
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
+        if(!checkNetworkAccess()){
+            Toast.makeText(this,"Echec acces à internet !",Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -108,6 +144,50 @@ public class CalendarActivity extends AppCompatActivity {
         super.onResume();
         new GetAllEventTask(this).execute();
         new GetNextEventTask(this).execute();
+    }
+
+    public Boolean checkNetworkConnection(){
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
+
+    public Boolean checkNetworkAccess(){
+        try {
+            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 www.google.com");
+            int returnVal = p1.waitFor();
+            boolean reachable = (returnVal==0);
+            return reachable;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void findPath(View v) {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        android.location.Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
+                .parse("http://maps.google.com/maps?saddr="
+                        + location.getLatitude() + ","
+                        + location.getLongitude() + "&daddr="
+                        + nextEventLatitude + "," + nextEventLongitude));
+        navigation.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+        startActivity(navigation);
     }
 
     private void showDayDialog(final Date selectedDate) {
@@ -162,7 +242,7 @@ public class CalendarActivity extends AppCompatActivity {
 
     public void DisplayNextEvent(ArrayList<Event> eventList){
         long minDate = Long.MAX_VALUE;
-        Event minEvent = new Event();
+        minEvent = new Event();
         for (Event e : eventList) {
             if (e.getmEventDate().getTime() < minDate){
                 minDate = e.getmEventDate().getTime();
@@ -206,6 +286,8 @@ public class CalendarActivity extends AppCompatActivity {
         nextEventLocation.setText(location.getmLocationName());
         nextEventTemperature.setText(location.getmMeteoTemperature()+" °C");
         new ImageLoadTask(location.getmMeteoIcon(),nextEventIcon).execute();
+        nextEventLatitude = location.getmLocationLatitude();
+        nextEventLongitude = location.getmLocationLongitude();
     }
 
     /*LIST ADAPTER*/
@@ -467,8 +549,6 @@ public class CalendarActivity extends AppCompatActivity {
             dialog = new ProgressDialog(activity);
             nextEventList.clear();
         }
-
-
 
         @Override
         protected Void doInBackground(String... params) {

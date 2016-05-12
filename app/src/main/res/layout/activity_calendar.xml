@@ -131,9 +131,10 @@
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="0.25"
-                android:text="Trajet"
+                android:text="@string/calendar_trajet_buton"
                 android:layout_height="wrap_content"
-                android:id="@+id/calendar_next_button_maps_id" />
+                android:id="@+id/calendar_next_button_maps_id"
+                android:onClick="findPath" />
         </LinearLayout>
 
     </LinearLayout>
