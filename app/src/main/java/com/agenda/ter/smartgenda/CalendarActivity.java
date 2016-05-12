@@ -1,7 +1,11 @@
 package com.agenda.ter.smartgenda;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +18,7 @@ import android.graphics.BitmapFactory;
 import android.location.Criteria;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -22,6 +27,7 @@ import android.os.AsyncTask;
 import android.provider.Settings;
 import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,6 +44,7 @@ import android.widget.Toast;
 
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
+import com.agenda.ter.database.NotificationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Event;
 import com.agenda.ter.model.Location;
@@ -48,8 +55,11 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 
 public class CalendarActivity extends AppCompatActivity {
 
@@ -235,6 +245,13 @@ public class CalendarActivity extends AppCompatActivity {
     }
 
     public void goToEventActivity(View view) {
+        Intent intent2 = new Intent(this, AlarmReceiver.class);
+        AlarmManager alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Calendar c = Calendar.getInstance(Locale.FRANCE);
+        Long alertTime = c.getTimeInMillis()+2*1000;
+        Log.d("NOW",new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date(alertTime)));
+        alarmMgr.set(AlarmManager.RTC_WAKEUP,alertTime,PendingIntent.getBroadcast(this, 1, intent2,PendingIntent.FLAG_UPDATE_CURRENT));
+
         Intent intent = new Intent(this, EventActivity.class);
         intent.putExtra(EXTRA_EVENT_MODE,false);
         startActivity(intent);
