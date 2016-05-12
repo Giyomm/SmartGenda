@@ -45,7 +45,10 @@
         android:background="#8d9698"
         android:layout_height="0dp"
         android:layout_weight="0.25"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:paddingLeft="10dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="5dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -55,13 +58,26 @@
             android:id="@+id/next_event_text_view_id"
             android:gravity="center_horizontal"
             android:textColor="#eef4f6"
-            android:textSize="22sp" />
+            android:textSize="22sp"
+            android:layout_marginBottom="15dp" />
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal">
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="7dp">
+
+            <TextView
+                android:textColor="#eef4f6"
+                android:text="yyy"
+                android:layout_width="0dp"
+                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/calendar_next_name_id"
+                android:textSize="15dp"
+                android:layout_marginRight="50dp" />
 
             <TextView
                 android:textColor="#eef4f6"
@@ -69,16 +85,8 @@
                 android:layout_weight="0.25"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/calendar_next_name_id" />
-
-            <TextView
-
-                android:textColor="#eef4f6"
-                android:layout_width="0dp"
-                android:layout_weight="0.25"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/calendar_next_desc_id" />
+                android:id="@+id/calendar_next_date_id"
+                android:textSize="15dp" />
 
             <TextView
                 android:textColor="#eef4f6"
@@ -86,15 +94,9 @@
                 android:layout_weight="0.25"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/calendar_next_date_id" />
-
-            <TextView
-                android:textColor="#eef4f6"
-                android:layout_width="0dp"
-                android:layout_weight="0.25"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/calendar_next_hour_id" />
+                android:id="@+id/calendar_next_hour_id"
+                android:textSize="15dp"
+                android:layout_marginLeft="50dp" />
 
 
         </LinearLayout>
@@ -102,7 +104,7 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_gravity="center_horizontal">
 
             <TextView
@@ -111,7 +113,9 @@
                 android:layout_weight="0.25"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/calendar_next_location_id" />
+                android:id="@+id/calendar_next_location_id"
+                android:textSize="15dp"
+                android:layout_marginRight="50dp" />
 
 
             <TextView
@@ -123,18 +127,20 @@
                 android:id="@+id/calendar_next_temperature_id" />
 
             <ImageView
-                android:layout_width="0dp"
+                android:layout_width="20dp"
                 android:layout_weight="0.25"
-                android:layout_height="wrap_content"
-                android:id="@+id/calendar_next_icon_id" />
+                android:layout_height="50dp"
+                android:id="@+id/calendar_next_icon_id"
+                android:layout_marginRight="10dp" />
 
             <Button
-                android:layout_width="0dp"
-                android:layout_weight="0.25"
+                android:layout_width="10dp"
+                android:layout_weight="0.18"
                 android:text="@string/calendar_trajet_buton"
+                android:onClick="findPath"
                 android:layout_height="wrap_content"
                 android:id="@+id/calendar_next_button_maps_id"
-                android:onClick="findPath" />
+                android:textSize="8dp" />
         </LinearLayout>
 
     </LinearLayout>

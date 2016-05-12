@@ -82,7 +82,6 @@ public class CalendarActivity extends AppCompatActivity {
         nextEventName = (TextView)findViewById(R.id.calendar_next_name_id);
         nextEventName.setText(R.string.calendar_next_event_no_event);
         nextEventDate = (TextView)findViewById(R.id.calendar_next_date_id);
-        nextEventDesc = (TextView)findViewById(R.id.calendar_next_desc_id);
         nextEventHour = (TextView)findViewById(R.id.calendar_next_hour_id);
         nextEventLocation = (TextView)findViewById(R.id.calendar_next_location_id);
         nextEventTemperature = (TextView)findViewById(R.id.calendar_next_temperature_id);
@@ -263,7 +262,7 @@ public class CalendarActivity extends AppCompatActivity {
         Log.d("min date event",minEvent.getmEventName());
         nextEventName.setText(minEvent.getmEventName().toString());
         nextEventHour.setText(minEvent.getmEventTime().toString());
-        nextEventDesc.setText(minEvent.getmEventDescription().toString());
+//        nextEventDesc.setText(minEvent.getmEventDescription().toString());
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         String dateString = formatter.format(minEvent.getmEventDate());
         nextEventDate.setText(dateString);
@@ -274,7 +273,6 @@ public class CalendarActivity extends AppCompatActivity {
     public void resetNextEventView(){
         nextEventName.setText(R.string.calendar_next_event_no_event);
         nextEventHour.setText("");
-        nextEventDesc.setText("");
         nextEventDate.setText("");
         nextEventButtonMaps.setVisibility(View.GONE);
         nextEventLocation.setText("");
