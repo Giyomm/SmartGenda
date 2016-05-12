@@ -12,12 +12,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Criteria;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.provider.Settings;
 import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -74,19 +76,21 @@ public class CalendarActivity extends AppCompatActivity {
     Event minEvent;
     double nextEventLatitude, nextEventLongitude;
 
+    android.location.Location location_user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
 
-        nextEventName = (TextView)findViewById(R.id.calendar_next_name_id);
+        nextEventName = (TextView) findViewById(R.id.calendar_next_name_id);
         nextEventName.setText(R.string.calendar_next_event_no_event);
-        nextEventDate = (TextView)findViewById(R.id.calendar_next_date_id);
-        nextEventHour = (TextView)findViewById(R.id.calendar_next_hour_id);
-        nextEventLocation = (TextView)findViewById(R.id.calendar_next_location_id);
-        nextEventTemperature = (TextView)findViewById(R.id.calendar_next_temperature_id);
-        nextEventButtonMaps = (Button)findViewById(R.id.calendar_next_button_maps_id);
-        nextEventIcon = (ImageView)findViewById(R.id.calendar_next_icon_id);
+        nextEventDate = (TextView) findViewById(R.id.calendar_next_date_id);
+        nextEventHour = (TextView) findViewById(R.id.calendar_next_hour_id);
+        nextEventLocation = (TextView) findViewById(R.id.calendar_next_location_id);
+        nextEventTemperature = (TextView) findViewById(R.id.calendar_next_temperature_id);
+        nextEventButtonMaps = (Button) findViewById(R.id.calendar_next_button_maps_id);
+        nextEventIcon = (ImageView) findViewById(R.id.calendar_next_icon_id);
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
         eventDayList = new ArrayList<>();
@@ -113,8 +117,8 @@ public class CalendarActivity extends AppCompatActivity {
         nextEventButtonMaps.setVisibility(View.GONE);
         new GetNextEventTask(CalendarActivity.this).execute();
 
-        if(!checkNetworkConnection()){
-            Toast.makeText(this,"Veuillez activer votre connection internet !",Toast.LENGTH_SHORT).show();
+        if (!checkNetworkConnection()) {
+            //Toast.makeText(this,"Veuillez activer votre connection internet !",Toast.LENGTH_SHORT).show();
             final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
             new AlertDialog.Builder(this)
                     .setTitle("Internet")
@@ -123,6 +127,8 @@ public class CalendarActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             // continue with delete
                             wifiManager.setWifiEnabled(true);
+                            Intent in = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                            startActivity(in);
                         }
                     })
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -133,9 +139,6 @@ public class CalendarActivity extends AppCompatActivity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
         }
-        if(!checkNetworkAccess()){
-            Toast.makeText(this,"Echec acces à internet !",Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
@@ -145,18 +148,18 @@ public class CalendarActivity extends AppCompatActivity {
         new GetNextEventTask(this).execute();
     }
 
-    public Boolean checkNetworkConnection(){
+    public Boolean checkNetworkConnection() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
 
-    public Boolean checkNetworkAccess(){
+    public Boolean checkNetworkAccess() {
         try {
             Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 www.google.com");
             int returnVal = p1.waitFor();
-            boolean reachable = (returnVal==0);
+            boolean reachable = (returnVal == 0);
             return reachable;
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -165,10 +168,12 @@ public class CalendarActivity extends AppCompatActivity {
         return false;
     }
 
+
+
     public void findPath(View v) {
+
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -179,14 +184,16 @@ public class CalendarActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        android.location.Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        location_user = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+
         Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
                 .parse("http://maps.google.com/maps?saddr="
-                        + location.getLatitude() + ","
-                        + location.getLongitude() + "&daddr="
+                        + location_user.getLatitude() + ","
+                        + location_user.getLongitude() + "&daddr="
                         + nextEventLatitude + "," + nextEventLongitude));
         navigation.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
         startActivity(navigation);
+
     }
 
     private void showDayDialog(final Date selectedDate) {

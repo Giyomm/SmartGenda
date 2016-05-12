@@ -73,4 +73,5 @@ public class Location {
     public void setmMeteoIcon(String mMeteoIcon) {
         this.mMeteoIcon = mMeteoIcon;
     }
+
 }
