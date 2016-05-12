@@ -1,17 +1,10 @@
 package com.agenda.ter.smartgenda;
 
 import android.Manifest;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -19,39 +12,18 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.agenda.ter.map.DirectionFinder;
-import com.agenda.ter.map.DirectionFinderListener;
-import com.agenda.ter.map.Route;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -63,23 +35,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient client;
 
     //LAT ET LNG
-    double latitude = 0, longitude = 0;
-
-    Intent intentFromCalendar;
+    double latitude = 0, longitude = 0;;
 
     // LES WIDGETS DE L'ACTIVITE MAPS
     Button chercherBtn, saveLocationButon;
-    EditText destinationEditText, departEditText;
-
-    private LocationManager locationManager;
-    private String provider;
-
-
-    //JE SAIS PAS ENCORE
-    private List<Marker> originMarkers = new ArrayList<>();
-    private List<Marker> destinationMarkers = new ArrayList<>();
-    private List<Polyline> polylinePaths = new ArrayList<>();
-    private ProgressDialog progressDialog;
+    EditText destinationEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +56,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // LES WIDGETS DE L'ACITIVTE MAPS
         chercherBtn = (Button) findViewById(R.id.maps_chercherLieu_bouton_id);
         destinationEditText = (EditText) findViewById(R.id.maps_destination_edittext_id);
-        //departEditText = (EditText) findViewById(R.id.maps_origin_edittext_id);
         saveLocationButon = (Button) findViewById(R.id.maps_saveLocation_bouton_id);
 
 
@@ -123,12 +82,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public boolean onMyLocationButtonClick() {
-                //double longitudeLocation = mMap.getMyLocation().getLongitude();
-                //double latitudeLocation = mMap.getMyLocation().getLatitude();
-                //Log.d("LOCATION", "location : "+  mMap.getMyLocation().getLatitude()+ " , "+mMap.getMyLocation().getLongitude());
-                Log.d("Location par def", "" + mMap.getMyLocation());
+
                 try {
-                    //departEditText.setText(mMap.getMyLocation().getLatitude() + " , " + mMap.getMyLocation().getLongitude());
                     LatLng latlng = new LatLng(mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,10.0f));
                 } catch (Exception e) {
@@ -138,111 +93,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
-
-    /*public void chercherItineraire(View v){
-        sendRequest(); saveLocationButon.setEnabled(true);
-    }
-
-    private void sendRequest(){
-        String destination = destinationEditText.getText().toString();
-        String depart = departEditText.getText().toString();
-        if (depart.isEmpty()) {
-            Toast.makeText(this, "Entrez une adresse de départ!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (destination.isEmpty()) {
-            Toast.makeText(this, "Entrez une destination!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            new DirectionFinder(new DirectionFinderListener() {
-                @Override
-                public void onDirectionFinderStart() {
-                    MapsActivity.this.onDirectionFinderStart();
-                }
-
-                @Override
-                public void onDirectionFinderSuccess(List<Route> route) {
-                    MapsActivity.this.onDirectionFinderSuccess(route);
-                }
-            }, depart, destination).execute();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void onDirectionFinderStart() {
-        progressDialog = ProgressDialog.show(this, "Patience",
-                "Trouver la direction..!", true);
-
-        if (originMarkers != null) {
-            for (Marker marker : originMarkers) {
-                marker.remove();
-            }
-        }
-
-        if (destinationMarkers != null) {
-            for (Marker marker : destinationMarkers) {
-                marker.remove();
-            }
-        }
-
-        if (polylinePaths != null) {
-            for (Polyline polyline:polylinePaths ) {
-                polyline.remove();
-            }
-        }
-    }
-
-    public void onDirectionFinderSuccess(List<Route> routes) {
-        progressDialog.dismiss();
-        polylinePaths = new ArrayList<>();
-        originMarkers = new ArrayList<>();
-        destinationMarkers = new ArrayList<>();
-
-        for (Route route : routes) {
-            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 5));
-            ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
-            ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
-
-            originMarkers.add(mMap.addMarker(new MarkerOptions()
-                   // .icon(BitmapDescriptorFactory.fromResource(R.drawable.start_blue))
-                    .title(route.startAddress)
-                    .position(route.startLocation)));
-            destinationMarkers.add(mMap.addMarker(new MarkerOptions()
-                  //  .icon(BitmapDescriptorFactory.fromResource(R.drawable.end_green))
-                    .title(route.endAddress)
-                    .position(route.endLocation)));
-
-            PolylineOptions polylineOptions = new PolylineOptions().
-                    geodesic(true).
-                    color(Color.BLUE).
-                    width(10);
-
-            for (int i = 0; i < route.points.size(); i++)
-                polylineOptions.add(route.points.get(i));
-
-            polylinePaths.add(mMap.addPolyline(polylineOptions));
-
-            LatLngBounds.Builder b = new LatLngBounds.Builder();
-            for (Marker m : originMarkers)
-                b.include(m.getPosition());
-            for (Marker m : destinationMarkers)
-                b.include(m.getPosition());
-            LatLngBounds bounds = b.build();
-
-            int widthForBounds = getResources().getDisplayMetrics().widthPixels;
-            int heightForBounds = getResources().getDisplayMetrics().heightPixels -
-                    findViewById(R.id.maps_destination_layout_id).getHeight() -
-                    findViewById(R.id.maps_origin_layout_id).getHeight() -
-                    findViewById(R.id.maps_control_panel_layout_id).getHeight() -
-                    findViewById(R.id.maps_saveLocation_bouton_id).getHeight();
-
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds,widthForBounds,heightForBounds,25);
-            mMap.animateCamera(cu);
-        }
-    }*/
 
     public void onSearch (View v){
         String location = destinationEditText.getText().toString();
@@ -303,6 +153,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             finish();
         }
     }
-
-
 }
