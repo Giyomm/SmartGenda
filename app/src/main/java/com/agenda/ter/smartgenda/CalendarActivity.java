@@ -1,9 +1,9 @@
 package com.agenda.ter.smartgenda;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
@@ -24,10 +24,10 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.provider.Settings;
 import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -86,8 +86,13 @@ public class CalendarActivity extends AppCompatActivity {
     Event minEvent;
     double nextEventLatitude, nextEventLongitude;
 
+    //OBJETS POUR LES ALARMES
+    AlarmManager alarmManager;
+    private PendingIntent pending_intent;
+
     android.location.Location location_user;
 
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,6 +154,10 @@ public class CalendarActivity extends AppCompatActivity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
         }
+
+        //LE SERVICE DES ALARMES
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
     }
 
     @Override

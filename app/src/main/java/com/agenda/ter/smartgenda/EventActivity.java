@@ -2,9 +2,11 @@ package com.agenda.ter.smartgenda;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
@@ -104,6 +106,12 @@ public class EventActivity extends AppCompatActivity {
     private SmartgendaDbHelper dbHelper;
 
     ArrayList<SmartNotification> listNotif = new ArrayList<>();
+
+    // POUR LES ALARMES
+    //OBJETS POUR LES ALARMES
+    AlarmManager alarmManager;
+    DialogFragment newFragment;
+    private PendingIntent pending_intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -307,7 +315,7 @@ public class EventActivity extends AppCompatActivity {
 
     //AFFICHER LE TIME PICKER
     public void showTimePicker(View v){
-        DialogFragment newFragment = new TimePickerFragment();
+        newFragment = new TimePickerFragment();
         newFragment.show(getFragmentManager(),"TimePicker");
     }
 
@@ -381,6 +389,20 @@ public class EventActivity extends AppCompatActivity {
                     iconPath
             );
         }
+
+        // LES ALARMES
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        final Calendar calendar = Calendar.getInstance();
+
+        final Intent myIntent = new Intent(this, AlarmReceiver.class);
+
+        calendar.set(Calendar.HOUR_OF_DAY, hourSys);
+        calendar.set(Calendar.MINUTE, minuteSys);
+
+        pending_intent = PendingIntent.getBroadcast(EventActivity.this, 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pending_intent);
+
     }
 
     /*CLASSES ASYNCHRONES POUR REQUÊTES HTTP et SQL*/
@@ -835,7 +857,7 @@ public class EventActivity extends AppCompatActivity {
             dialog.dismiss();
             dbHelper.close();
             Toast.makeText(activity,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
-            activity.finish();
+            //activity.finish();
         }
     }
 
