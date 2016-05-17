@@ -7,30 +7,31 @@ import java.util.Date;
  */
 public class Reminder {
 
-    private String mReminderName;
-    private Date mReminderDate;
+    private int mReminderId;
+    private int mReminderTime;
     private Boolean mReminderDisplayMap;
+    private int mReminderNotificationId;
 
-    public Reminder(String mReminderName, Date mReminderDate, Boolean mReminderDisplayMap) {
-        this.mReminderName = mReminderName;
-        this.mReminderDate = mReminderDate;
-        this.mReminderDisplayMap = mReminderDisplayMap;
+    public Reminder(int mReminderId, int mReminderTime, int mReminderNotificationId) {
+        this.mReminderId = mReminderId;
+        this.mReminderTime = mReminderTime;
+        this.mReminderNotificationId = mReminderNotificationId;
     }
 
-    public String getmReminderName() {
-        return mReminderName;
+    public int getmReminderId() {
+        return mReminderId;
     }
 
-    public void setmReminderName(String mReminderName) {
-        this.mReminderName = mReminderName;
+    public void setmReminderId(int mReminderId) {
+        this.mReminderId = mReminderId;
     }
 
-    public Date getmReminderDate() {
-        return mReminderDate;
+    public int getmReminderTime() {
+        return mReminderTime;
     }
 
-    public void setmReminderDate(Date mReminderDate) {
-        this.mReminderDate = mReminderDate;
+    public void setmReminderTime(int mReminderTime) {
+        this.mReminderTime = mReminderTime;
     }
 
     public Boolean getmReminderDisplayMap() {
@@ -39,5 +40,13 @@ public class Reminder {
 
     public void setmReminderDisplayMap(Boolean mReminderDisplayMap) {
         this.mReminderDisplayMap = mReminderDisplayMap;
+    }
+
+    public int getmReminderNotificationId() {
+        return mReminderNotificationId;
+    }
+
+    public void setmReminderNotificationId(int mReminderNotificationId) {
+        this.mReminderNotificationId = mReminderNotificationId;
     }
 }

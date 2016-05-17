@@ -40,9 +40,11 @@ import android.widget.Toast;
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
 import com.agenda.ter.database.NotificationContract;
+import com.agenda.ter.database.ReminderContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Event;
 import com.agenda.ter.model.Location;
+import com.agenda.ter.model.Reminder;
 import com.agenda.ter.model.SmartNotification;
 
 import org.json.JSONObject;
@@ -96,6 +98,7 @@ public class EventActivity extends AppCompatActivity {
 
     // HEURE ET MINUTE DU SYS
     private int hourSys, minuteSys;
+    private ArrayList<Reminder> reminderList;
 
     //LES EXTRAS
     public static final String EXTRA_LONGITUDE = "com.agenda.ter.LONG";
@@ -137,6 +140,8 @@ public class EventActivity extends AppCompatActivity {
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
         locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
         spinnerEmail = (Spinner)findViewById(R.id.event_spinner_email);
+
+        reminderList = new ArrayList<>();
 
         //CACHER PROGRESSBAR
         meteoPbar.setVisibility(View.GONE);
@@ -389,20 +394,24 @@ public class EventActivity extends AppCompatActivity {
                     iconPath
             );
         }
+    }
 
-        // LES ALARMES
+    public void programAlarm() throws ParseException {
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        String dateAndTime = datepickertxtview.getText().toString() +" "+hour_picked_text_view.getText().toString();
+        Log.d("DATE AND TIME",dateAndTime);
+        Date eventDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(dateAndTime);
 
-        final Calendar calendar = Calendar.getInstance();
+        for (Reminder rmnd : reminderList) {
+            long alarmMilli = eventDate.getTime() - rmnd.getmReminderTime();
+            final Intent myIntent = new Intent(this, AlarmReceiver.class);
+            pending_intent = PendingIntent.getBroadcast(EventActivity.this, 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, alarmMilli, pending_intent);
+        }
 
-        final Intent myIntent = new Intent(this, AlarmReceiver.class);
-
-        calendar.set(Calendar.HOUR_OF_DAY, hourSys);
-        calendar.set(Calendar.MINUTE, minuteSys);
-
-        pending_intent = PendingIntent.getBroadcast(EventActivity.this, 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pending_intent);
-
+        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTime(), pending_intent);
+        Toast.makeText(this,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
+        this.finish();
     }
 
     /*CLASSES ASYNCHRONES POUR REQUÊTES HTTP et SQL*/
@@ -801,6 +810,79 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    public class GetReminderTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog dialog;
+        private EventActivity context;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        public GetReminderTask(EventActivity activity) {
+            context = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Récupération des données");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            //SELECT * FROM reminder
+            String[] projection = {
+                    ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_ID,
+                    ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_TIME,
+                    ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_DISPLAY_MAP,
+                    ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID
+            };
+
+            /*(WHERE id = event.notif_id)*/
+            //WHERE clause column
+            String selection = ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID+ "=?";
+
+            //WHERE clause values
+            String[] selectionArgs = {params[0]};
+
+            Cursor queryResult = db.query(
+                    ReminderContract.ReminderEntry.TABLE_NAME,// The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+
+            while (queryResult.moveToNext()) {
+
+                int id = queryResult.getInt(queryResult.getColumnIndex(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_ID));
+                int time = queryResult.getInt(queryResult.getColumnIndex(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_TIME));
+                int display_map = queryResult.getInt(queryResult.getColumnIndex(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_DISPLAY_MAP));
+                int notif_id = queryResult.getInt(queryResult.getColumnIndex(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID));
+
+                Reminder r = new Reminder(id,time,notif_id);
+                reminderList.add(r);
+            }
+
+            queryResult.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            try { programAlarm();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /*REQUÊTES INSERT*/
 
     public class InsertEventTask extends  AsyncTask<String, Void, Void>{
@@ -856,8 +938,8 @@ public class EventActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dialog.dismiss();
             dbHelper.close();
-            Toast.makeText(activity,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
-            //activity.finish();
+            //Recupère les reminder pour programmer l'alarme
+            new GetReminderTask(activity).execute(getSelectedSmartNotifId());
         }
     }
 

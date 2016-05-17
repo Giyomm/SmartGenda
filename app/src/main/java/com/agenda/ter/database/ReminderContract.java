@@ -17,7 +17,6 @@ public final class ReminderContract {
         public static final String COLUMN_NAME_REMINDER_DISPLAY_MAP = "reminder_display_map";
         public static final String COLUMN_NAME_REMINDER_NOTIFICATION_ID = "reminder_notification_id";
 
-        private static final String VARCHAR_TYPE = " VARCHAR";
         private static final String INTEGER_TYPE = " INTEGER";
         private static final String COMMA_SEP = ",";
 

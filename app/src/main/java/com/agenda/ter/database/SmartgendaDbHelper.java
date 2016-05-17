@@ -42,6 +42,8 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
 
         String rappel1_1 = "insert into reminder values (0,21600000,0, "+newRowId1+")" ; //6heures
         String rappel1_2 = "insert into reminder values (1,86400000,0, "+newRowId1+")" ; //24heures
+        String rappel1_21 = "insert into reminder values (2,60000,0, "+newRowId1+")" ; //1 min
+        String rappel1_22 = "insert into reminder values (3,120000,0, "+newRowId1+")" ; //2 min
         db.execSQL(rappel1_1); db.execSQL(rappel1_2);
 
         ContentValues values2 = new ContentValues();
@@ -53,11 +55,11 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         long newRowId2;
         newRowId2 = db.insert(NotificationContract.NotificationEntry.TABLE_NAME, null, values2);
         // insertion du rappel
-        String rappel2 = "insert into reminder values (3,10800000,0, "+newRowId2+")" ;   // 3heure
-        String rappel3 = "insert into reminder values (4,21600000,0, "+newRowId2+")" ;   // 6heure
-        String rappel4 = "insert into reminder values (5,43200000 ,0, "+newRowId2+")" ; // 12heure
-        String rappel5 = "insert into reminder values (6,86400000 ,0, "+newRowId2+")" ; // 24heure
-        String rappel6 = "insert into reminder values (7,3600000 ,0, "+newRowId2+")" ; // 1heure
+        String rappel2 = "insert into reminder values (4,10800000,0, "+newRowId2+")" ;   // 3heure
+        String rappel3 = "insert into reminder values (5,21600000,0, "+newRowId2+")" ;   // 6heure
+        String rappel4 = "insert into reminder values (6,43200000 ,0, "+newRowId2+")" ; // 12heure
+        String rappel5 = "insert into reminder values (7,86400000 ,0, "+newRowId2+")" ; // 24heure
+        String rappel6 = "insert into reminder values (8,3600000 ,0, "+newRowId2+")" ; // 1heure
 
         db.execSQL(rappel2);db.execSQL(rappel3);db.execSQL(rappel4);db.execSQL(rappel5);db.execSQL(rappel6);
 
