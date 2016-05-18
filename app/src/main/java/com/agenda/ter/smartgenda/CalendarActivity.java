@@ -51,6 +51,7 @@ import com.agenda.ter.model.Location;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -68,6 +69,8 @@ public class CalendarActivity extends AppCompatActivity {
     //false -> Mode ajout || true -> Mode edition
     public final static String EXTRA_EVENT_MODE = "com.agenda.ter.smartgenda.EVENT_MODE";
     public final static String EXTRA_EVENT_ID = "com.agenda.ter.smartgenda.EVENT_ID";
+
+    String _icon;
 
     //The UI Calendar View
     private com.agenda.ter.smartgenda.CalendarView mCalendarView;
@@ -295,7 +298,6 @@ public class CalendarActivity extends AppCompatActivity {
         Log.d("min date event",minEvent.getmEventName());
         nextEventName.setText(minEvent.getmEventName().toString());
         nextEventHour.setText(minEvent.getmEventTime().toString());
-//        nextEventDesc.setText(minEvent.getmEventDescription().toString());
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         String dateString = formatter.format(minEvent.getmEventDate());
         nextEventDate.setText(dateString);
@@ -694,7 +696,8 @@ public class CalendarActivity extends AppCompatActivity {
                 float _temperature = queryResult.getFloat(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE));
                 double _latitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE));
                 double _longitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE));
-                String _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
+                _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
+
 
                 location = new Location(_id,_name,_temperature,_latitude,_longitude,_icon);
             }
@@ -733,7 +736,9 @@ public class CalendarActivity extends AppCompatActivity {
                 InputStream input = connection.getInputStream();
                 Bitmap myBitmap = BitmapFactory.decodeStream(input);
                 return myBitmap;
-            } catch (Exception e) {
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }catch (Exception e){
                 e.printStackTrace();
             }
             return null;

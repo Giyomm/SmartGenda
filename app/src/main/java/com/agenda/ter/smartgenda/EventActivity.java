@@ -54,6 +54,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -274,6 +275,7 @@ public class EventActivity extends AppCompatActivity {
         locationLatLngTextView.setText(loc.getmLocationName());
         meteoPicked.setText(loc.getmMeteoTemperature()+"° C");
         changeProgressBarVisibility();
+        iconPath= loc.getmMeteoIcon();
         new ImageLoadTask(loc.getmMeteoIcon(), iconMeteo).execute();
     }
 
@@ -996,6 +998,7 @@ public class EventActivity extends AppCompatActivity {
                     idLocation,
                     spinnerEmail.getSelectedItem().toString()
             );
+
         }
     }
 
@@ -1084,6 +1087,7 @@ public class EventActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... params) {
+
 
             ContentValues values = new ContentValues();
 
