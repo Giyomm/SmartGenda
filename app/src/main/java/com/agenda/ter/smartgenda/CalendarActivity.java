@@ -161,6 +161,11 @@ public class CalendarActivity extends AppCompatActivity {
         //LE SERVICE DES ALARMES
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
+        //CHECK GPS POUR LE TRAJET
+        if(!checkGPSConnection()){
+            Toast.makeText(this,"GPS non activé",Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
@@ -168,6 +173,19 @@ public class CalendarActivity extends AppCompatActivity {
         super.onResume();
         new GetAllEventTask(this).execute();
         new GetNextEventTask(this).execute();
+    }
+
+    public Boolean checkGPSConnection(){
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps;
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            //Do what you need if enabled...
+            gps = true;
+        }else{
+            //Do what you need if not enabled...
+            gps = false;
+        }
+        return gps;
     }
 
     public Boolean checkNetworkConnection() {
@@ -190,32 +208,33 @@ public class CalendarActivity extends AppCompatActivity {
         return false;
     }
 
-
-
     public void findPath(View v) {
 
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        try {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            location_user = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+
+            Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
+                    .parse("http://maps.google.com/maps?saddr="
+                            + location_user.getLatitude() + ","
+                            + location_user.getLongitude() + "&daddr="
+                            + nextEventLatitude + "," + nextEventLongitude));
+            navigation.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+            startActivity(navigation);
+        }catch (Exception e){
+            Toast.makeText(this,"GPS non activé",Toast.LENGTH_SHORT).show();
         }
-        location_user = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-
-        Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
-                .parse("http://maps.google.com/maps?saddr="
-                        + location_user.getLatitude() + ","
-                        + location_user.getLongitude() + "&daddr="
-                        + nextEventLatitude + "," + nextEventLongitude));
-        navigation.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-        startActivity(navigation);
-
     }
 
     private void showDayDialog(final Date selectedDate) {
