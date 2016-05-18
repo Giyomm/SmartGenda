@@ -19,6 +19,7 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -105,6 +106,8 @@ public class EventActivity extends AppCompatActivity {
     public static final String EXTRA_LONGITUDE = "com.agenda.ter.LONG";
     public static final String EXTRA_LATITUDE = "com.agenda.ter.LAT";
     public static final String EXTRA_LOCALISATION_NAME = "com.agenda.ter.LOCATION_NAME";
+    public static final String EXTRA_NOTIFICATION_ALARM_NAME = "com.agenda.ter.NOTIFICATION_ALARM_NAME";
+    public static final String EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME = "com.agenda.ter.NOTIFICATION_ALARM_DATE_AND_TIME";
 
     //DATABASE
     private SmartgendaDbHelper dbHelper;
@@ -115,7 +118,6 @@ public class EventActivity extends AppCompatActivity {
     //OBJETS POUR LES ALARMES
     AlarmManager alarmManager;
     DialogFragment newFragment;
-    private PendingIntent pending_intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -399,19 +401,33 @@ public class EventActivity extends AppCompatActivity {
     }
 
     public void programAlarm() throws ParseException {
+        //Create the alarm manager
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        //Set the date and time of the event
         String dateAndTime = datepickertxtview.getText().toString() +" "+hour_picked_text_view.getText().toString();
         Log.d("DATE AND TIME",dateAndTime);
         Date eventDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(dateAndTime);
 
+        //For each of the reminders of the event set the alarms
         for (Reminder rmnd : reminderList) {
+            //Process the date and time fo the reminder
             long alarmMilli = eventDate.getTime() - rmnd.getmReminderTime();
-            final Intent myIntent = new Intent(this, AlarmReceiver.class);
-            pending_intent = PendingIntent.getBroadcast(EventActivity.this, 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, alarmMilli, pending_intent);
+
+            //if the reminder is pass the current time and date, we won't set the alarm to prevent the app to sent off
+            //all the passed alarmed
+            if(alarmMilli > System.currentTimeMillis()){
+                final Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_NAME,nameEvent.getText().toString());
+                alarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME,dateAndTime);
+                //alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                PendingIntent pending_intent = PendingIntent.getBroadcast(EventActivity.this, (int)System.currentTimeMillis(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, alarmMilli, pending_intent);
+            }
         }
 
-        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTime(), pending_intent);
+        //alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTime(), pending_intent);
         Toast.makeText(this,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
         this.finish();
     }

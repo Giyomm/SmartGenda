@@ -44,7 +44,7 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         String rappel1_2 = "insert into reminder values (1,86400000,0, "+newRowId1+")" ; //24heures
         String rappel1_21 = "insert into reminder values (2,60000,0, "+newRowId1+")" ; //1 min
         String rappel1_22 = "insert into reminder values (3,120000,0, "+newRowId1+")" ; //2 min
-        db.execSQL(rappel1_1); db.execSQL(rappel1_2);
+        db.execSQL(rappel1_1); db.execSQL(rappel1_2); db.execSQL(rappel1_21); db.execSQL(rappel1_22);
 
         ContentValues values2 = new ContentValues();
         values2.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME,"Trés fréquente");
