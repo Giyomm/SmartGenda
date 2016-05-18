@@ -193,6 +193,22 @@ public class EventActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+       try{
+           if(NotificationActivity.listNotifPerso.size() > 0){
+               for (SmartNotification sn : NotificationActivity.listNotifPerso) {
+                   notificationSpinner.setSelection(NotificationActivity.listNotifPerso.indexOf(sn));
+               }
+               populateSpinner(NotificationActivity.listNotifPerso);
+           }
+       }catch(Exception e){}
+
+
+    }
+
     //Recuperer les emails du terminal et remplir le spinner avec les emails trouvés
     public void SpinnerEmail(){
         Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
@@ -281,7 +297,8 @@ public class EventActivity extends AppCompatActivity {
         new ImageLoadTask(loc.getmMeteoIcon(), iconMeteo).execute();
     }
 
-    private void setNotificationSpinner(SmartNotification notif){
+     void setNotificationSpinner(SmartNotification notif){
+
         for (SmartNotification sn : listNotif) {
             if(sn.getmSmartNotificationId() == notif.getmSmartNotificationId())
                 notificationSpinner.setSelection(listNotif.indexOf(sn));
@@ -723,11 +740,14 @@ public class EventActivity extends AppCompatActivity {
                     NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE
             };
 
+            String selection = NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME+ " in(?,?)";
+            String[] selectionArgs = {"Trés fréquente","Normale"};
+
             Cursor queryResult = db.query(
                     NotificationContract.NotificationEntry.TABLE_NAME,      // The table to query
                     projection,                               // The columns to return
-                    null,                                // The columns for the WHERE clause
-                    null,                            // The values for the WHERE clause
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
                     null,                                     // don't group the rows
                     null,                                     // don't filter by row groups
                     null                                      // The sort order

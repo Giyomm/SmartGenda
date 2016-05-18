@@ -4,14 +4,19 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.annotation.IntegerRes;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -35,33 +40,54 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.agenda.ter.database.EventContract;
+import com.agenda.ter.database.NotificationContract;
+import com.agenda.ter.database.ReminderContract;
+import com.agenda.ter.database.SmartgendaDbHelper;
+import com.agenda.ter.model.SmartNotification;
+
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 public class NotificationActivity extends AppCompatActivity {
 
+
+
     public static String chemin_son;
     private DatePickerDialog dpd;
     private AlertDialog alertDialog;
-    private ArrayList<String> list;
+    private ArrayList<String> listRappel;
+    private ArrayList<String> listRappelTemp;
     private MyCustomAdapter adapter;
     private TextView txtInput;
     private ArrayList<HashMap<String, String>> songsList;
 
     private Spinner spinner;
-    String selectedColor;
-    public static String selectedRappel="" ;
-    int codeCouleur=Color.BLUE;
+    private String selectedColor;
+    private static String selectedRappel="" ;
+    private int codeCouleurR=0;
+    private int codeCouleurG=0;
+    private int codeCouleurB=255;
+    private EditText notificationNameEditText;
+    private String notifName;
 
+    private SmartgendaDbHelper dbHelper;
 
+    public static ArrayList<SmartNotification> listNotifPerso ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        dbHelper = new SmartgendaDbHelper(getApplicationContext());
+
         // enlever le focus
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
@@ -69,25 +95,13 @@ public class NotificationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification);
 
         ListView listView = (ListView) findViewById(R.id.listView_id);
-      //  txtInput = (TextView) findViewById(R.id.editText_heure_id);
+        notificationNameEditText = (EditText) findViewById(R.id.notification_edit_text_name_id);
+        listNotifPerso = new ArrayList<>();
 
-        list = new ArrayList<String>();
-        adapter = new MyCustomAdapter(list, this);
+        listRappel = new ArrayList<String>();
+        listRappelTemp = new ArrayList<String>();
+        adapter = new MyCustomAdapter(listRappel, this);
         listView.setAdapter(adapter);
-
-        // DatePicker
-        ImageButton datepick = (ImageButton) findViewById(R.id.date_even_butonimage_id);
-        EditText desc_even = (EditText)findViewById(R.id.desc_even_edittextt_id);
-
-        Calendar calendar = Calendar.getInstance();
-        dpd = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-            TextView datepickertxtview = (TextView)findViewById(R.id.datepicker_textview_id);
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                datepickertxtview.setText(dayOfMonth + "/" + (monthOfYear+1) + "/"+ year);
-            }
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        // Fin_DatePicker
 
         //Spinner Color
         Spinner spinner = (Spinner) findViewById(R.id.spinnerColor);
@@ -101,11 +115,11 @@ public class NotificationActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedColor = (String) parent.getItemAtPosition(position);
                 switch (selectedColor){
-                    case "Bleu" : codeCouleur = Color.BLUE;break;
-                    case "Rouge" : codeCouleur = Color.RED;break;
-                    case "Vert" : codeCouleur = Color.GREEN;break;
-                    case "Orange" : codeCouleur = Color.rgb(237 ,127,16);break;
-                    case "Violet" : codeCouleur = Color.rgb(136 ,6,206);break;
+                    case "Bleu" : codeCouleurR =0 ; codeCouleurG =0 ;codeCouleurB =255 ; break;
+                    case "Rouge" : codeCouleurR =255 ; codeCouleurG =0 ;codeCouleurB =0 ; break;
+                    case "Vert" : codeCouleurR =0 ; codeCouleurG =255 ;codeCouleurB =0 ; break;
+                    case "Orange" : codeCouleurR =237 ; codeCouleurG =127 ;codeCouleurB =16 ; break;
+                    case "Violet" : codeCouleurR =136 ; codeCouleurG =6 ;codeCouleurB =206 ; break;
 
                 }
             }
@@ -137,19 +151,18 @@ public class NotificationActivity extends AppCompatActivity {
         dpd.show();
     }
 
-  /*  public void showTimePicker(View v){
-        DialogFragment newFragment = new TimePickerFragment();
-        newFragment.show(getFragmentManager(),"TimePicker");
-    }*/
 
-    public void saveNotification(View view) {
-
-        EditText nameEditText= (EditText) findViewById(R.id.editText_nomNotif_id); String name = nameEditText.getText().toString();
-      //  TextView dateTextView= (TextView) findViewById(R.id.datepicker_textview_id);String date = dateTextView.getText().toString();
-      //  String heure = txtInput.getText().toString();
-
-        if(name .equals("") || name==null ) {Toast.makeText(getApplicationContext(), "Entrer le nom de la notification !!", Toast.LENGTH_SHORT).show(); return;}
-
+    public void saveNotification(View view){
+        notifName = notificationNameEditText.getText().toString();
+        if(notifName .equals("") || notifName==null ) {Toast.makeText(getApplicationContext(), "Entrer le nom de la notification !!", Toast.LENGTH_SHORT).show(); return;}
+        if(listRappel.size() == 0){Toast.makeText(getApplicationContext(), "Choisir au moins un rappel !!", Toast.LENGTH_SHORT).show();return;}
+        new InsertNotificationTask(this).execute(
+                notifName,
+                String.valueOf(codeCouleurR),
+                String.valueOf(codeCouleurG),
+                String.valueOf(codeCouleurB),
+                chemin_son
+        );
         Toast.makeText(getApplicationContext(), "Notification enegistrer avec succée ", Toast.LENGTH_SHORT).show();
 
     }
@@ -160,48 +173,14 @@ public class NotificationActivity extends AppCompatActivity {
     }
 
 
-  /*  public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState){
-            //Use the current time as the default values for the time picker
-            final Calendar c = Calendar.getInstance();
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int minute = c.get(Calendar.MINUTE);
-
-            //Create and return a new instance of TimePickerDialog
-            return new TimePickerDialog(getActivity(),this, hour, minute,
-                    DateFormat.is24HourFormat(getActivity()));
-        }
-
-        //onTimeSet() callback method
-        public void onTimeSet(TimePicker view, int hourOfDay, int minute){
-            TextView tv = (TextView) getActivity().findViewById(R.id.editText_heure_id);
-            //Set a message for user
-            //tv.setText("Your chosen time is...\n\n");
-            //Display the user changed time on TextView
-            // tv.setText(tv.getText()+ "Hour : " + String.valueOf(hourOfDay)
-            //       + "\nMinute : " + String.valueOf(minute) + "\n");
-            tv.setText(String.valueOf(hourOfDay)+":"+String.valueOf(minute));
-
-        }
-    }*/
-
-
     public void AddToList(View v) {
 
-      /*  String newItem = txtInput.getText().toString();
-        if(newItem == ""){Toast.makeText(getApplicationContext(), "Choisir l'eure de l'événement !!", Toast.LENGTH_SHORT).show();}
-        else{
-            list.add("Rappel "+list.size()+" : "+newItem);
-            adapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(), "Rappel à : "+newItem, Toast.LENGTH_SHORT).show();
-        }*/
-
         String newItem = selectedRappel;
+
         if(newItem == ""){Toast.makeText(getApplicationContext(), "Choisir un rappel !!", Toast.LENGTH_SHORT).show();}
         else{
-            list.add("Rappel avant : "+newItem);
+            listRappel.add("Rappel avant : "+newItem);
+            listRappelTemp.add(newItem);
             adapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(), "Rappel avant : "+newItem, Toast.LENGTH_SHORT).show();
         }
@@ -365,6 +344,116 @@ public class NotificationActivity extends AppCompatActivity {
     }
 }
 
+    public class InsertNotificationTask extends AsyncTask<String, Void, Void> {
 
+        long newRowId;
+        SmartNotification newNotif;
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        /** application context. */
+        private NotificationActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public InsertNotificationTask(NotificationActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Progress start");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            ContentValues values = new ContentValues();
+
+            values.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME,params[0]);
+            values.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_RED,params[1]);
+            values.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_GREEN,params[2]);
+            values.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_COLOR_BLUE,params[3]);
+            values.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_SOUND,params[4]);
+
+
+           newRowId = db.insert(
+                    NotificationContract.NotificationEntry.TABLE_NAME,
+                    null,
+                    values);
+
+            String nom = params[0];
+            int couleurR = Integer.valueOf(params[1]);
+            int couleurG = Integer.valueOf(params[2]);
+            int couleurB = Integer.valueOf(params[3]);
+            String sound = params[4];
+
+            newNotif=new SmartNotification((int)newRowId,nom,couleurR,couleurG,couleurB);
+            listNotifPerso.add(newNotif);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            for(int i=0 ; i<listRappelTemp.size() ; i++){
+                String rappel = listRappelTemp.get(i);
+                String[] rap = rappel.split(" ");
+                Log.d("Element ",Integer.valueOf(rap[0])*3600000+"");
+                new InsertReminderTask(NotificationActivity.this).execute(String.valueOf(Integer.valueOf(rap[0])*3600000),String.valueOf(newRowId));
+            }
+        }
+    }
+
+    public class InsertReminderTask extends AsyncTask<String, Void, Void> {
+
+        /** progress dialog to show user that the backup is processing. */
+        private ProgressDialog dialog;
+        /** application context. */
+        private NotificationActivity activity;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        public InsertReminderTask(NotificationActivity activity) {
+            this.activity = activity;
+            dialog = new ProgressDialog(activity);
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Progress start");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            ContentValues values = new ContentValues();
+
+            values.put(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_TIME,params[0]);
+            values.put(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_DISPLAY_MAP,0);
+            values.put(ReminderContract.ReminderEntry.COLUMN_NAME_REMINDER_NOTIFICATION_ID,params[1]);
+
+
+            db.insert(
+                    ReminderContract.ReminderEntry.TABLE_NAME,
+                    null,
+                    values);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            dbHelper.close();
+            //Toast.makeText(activity,"Notification ajoutée avec succés !",Toast.LENGTH_SHORT).show();
+            activity.finish();
+        }
+    }
 
 }

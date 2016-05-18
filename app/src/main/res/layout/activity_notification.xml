@@ -45,7 +45,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editText_nomNotif_id"
+            android:id="@+id/notification_edit_text_name_id"
             android:hint="@string/Enter_nom_editText"
             android:layout_marginBottom="10dp"
 
