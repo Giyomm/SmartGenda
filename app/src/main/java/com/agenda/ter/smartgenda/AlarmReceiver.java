@@ -20,8 +20,10 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String notificationEventName = intent.getStringExtra(EventActivity.EXTRA_NOTIFICATION_ALARM_NAME);
         String notificationEventDateAndTime = intent.getStringExtra(EventActivity.EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME);
+        Long notificationEventID = intent.getLongExtra(EventActivity.EXTRA_NOTIFICATION_ALARM_LAST_ID,-1);
 
         Intent notificationIntent = new Intent(context, CalendarActivity.class);
+        notificationIntent.putExtra(CalendarActivity.EXTRA_ALARM_RECEIVER_EVENT_ID,""+notificationEventID);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(context, 0,notificationIntent, 0);
 
@@ -31,7 +33,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                         .setContentIntent(pi)
                         .setContentTitle("Rappel Smartgenda")
                         .setContentText("Vous avez l'évènement "+ notificationEventName +" prévu pour "+notificationEventDateAndTime)
-                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                        .setAutoCancel(true);
 
         // Sets an ID for the notification
         int mNotificationId = (int) Calendar.getInstance().getTimeInMillis();

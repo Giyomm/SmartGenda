@@ -70,6 +70,9 @@ public class CalendarActivity extends AppCompatActivity {
     public final static String EXTRA_EVENT_MODE = "com.agenda.ter.smartgenda.EVENT_MODE";
     public final static String EXTRA_EVENT_ID = "com.agenda.ter.smartgenda.EVENT_ID";
 
+    //Alarm control extra
+    public static final String EXTRA_ALARM_RECEIVER_EVENT_ID = "com.agenda.ter.ALARM_EVENT_ID";
+
     String _icon;
 
     //The UI Calendar View
@@ -88,10 +91,6 @@ public class CalendarActivity extends AppCompatActivity {
     ImageView nextEventIcon;
     Event minEvent;
     double nextEventLatitude, nextEventLongitude;
-
-    //OBJETS POUR LES ALARMES
-    AlarmManager alarmManager;
-    private PendingIntent pending_intent;
 
     android.location.Location location_user;
 
@@ -157,9 +156,6 @@ public class CalendarActivity extends AppCompatActivity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
         }
-
-        //LE SERVICE DES ALARMES
-        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
         //CHECK GPS POUR LE TRAJET
         if(!checkGPSConnection()){
@@ -276,13 +272,6 @@ public class CalendarActivity extends AppCompatActivity {
     }
 
     public void goToEventActivity(View view) {
-        Intent intent2 = new Intent(this, AlarmReceiver.class);
-        AlarmManager alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Calendar c = Calendar.getInstance(Locale.FRANCE);
-        Long alertTime = c.getTimeInMillis()+2*1000;
-        Log.d("NOW",new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date(alertTime)));
-        alarmMgr.set(AlarmManager.RTC_WAKEUP,alertTime,PendingIntent.getBroadcast(this, 1, intent2,PendingIntent.FLAG_UPDATE_CURRENT));
-
         Intent intent = new Intent(this, EventActivity.class);
         intent.putExtra(EXTRA_EVENT_MODE,false);
         startActivity(intent);

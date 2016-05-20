@@ -108,6 +108,7 @@ public class EventActivity extends AppCompatActivity {
     public static final String EXTRA_LOCALISATION_NAME = "com.agenda.ter.LOCATION_NAME";
     public static final String EXTRA_NOTIFICATION_ALARM_NAME = "com.agenda.ter.NOTIFICATION_ALARM_NAME";
     public static final String EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME = "com.agenda.ter.NOTIFICATION_ALARM_DATE_AND_TIME";
+    public static final String EXTRA_NOTIFICATION_ALARM_LAST_ID = "com.agenda.ter.NOTIFICATION_ALARM_LAST_ID";
 
     //DATABASE
     private SmartgendaDbHelper dbHelper;
@@ -417,7 +418,7 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
-    public void programAlarm() throws ParseException {
+    public void programAlarm(Long _id) throws ParseException {
         //Create the alarm manager
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
@@ -431,20 +432,26 @@ public class EventActivity extends AppCompatActivity {
             //Process the date and time fo the reminder
             long alarmMilli = eventDate.getTime() - rmnd.getmReminderTime();
 
-            //if the reminder is pass the current time and date, we won't set the alarm to prevent the app to sent off
+            //If the reminder is pass the current time and date, we won't set the alarm to prevent the app to sent off
             //all the passed alarmed
             if(alarmMilli > System.currentTimeMillis()){
                 final Intent alarmIntent = new Intent(this, AlarmReceiver.class);
                 alarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_NAME,nameEvent.getText().toString());
                 alarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME,dateAndTime);
-                //alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 PendingIntent pending_intent = PendingIntent.getBroadcast(EventActivity.this, (int)System.currentTimeMillis(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, alarmMilli, pending_intent);
             }
         }
 
-        //alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTime(), pending_intent);
+        Intent lastAlarmIntent = new Intent(this, AlarmReceiver.class);
+        lastAlarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_NAME,nameEvent.getText().toString());
+        lastAlarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME,dateAndTime);
+        lastAlarmIntent.putExtra(EXTRA_NOTIFICATION_ALARM_LAST_ID,_id);
+
+        PendingIntent pending_intent = PendingIntent.getBroadcast(EventActivity.this, (int)System.currentTimeMillis(), lastAlarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, eventDate.getTime(), pending_intent);
+
         Toast.makeText(this,"Événement ajouté avec succés !",Toast.LENGTH_SHORT).show();
         this.finish();
     }
@@ -852,12 +859,14 @@ public class EventActivity extends AppCompatActivity {
 
         private ProgressDialog dialog;
         private EventActivity context;
+        private Long eventID;
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        public GetReminderTask(EventActivity activity) {
+        public GetReminderTask(EventActivity activity, Long id) {
             context = activity;
             dialog = new ProgressDialog(activity);
+            eventID = id;
         }
 
         protected void onPreExecute() {
@@ -914,7 +923,7 @@ public class EventActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             dialog.dismiss();
             dbHelper.close();
-            try { programAlarm();
+            try { programAlarm(eventID);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -923,7 +932,7 @@ public class EventActivity extends AppCompatActivity {
 
     /*REQUÊTES INSERT*/
 
-    public class InsertEventTask extends  AsyncTask<String, Void, Void>{
+    public class InsertEventTask extends  AsyncTask<String, Long, Long>{
 
         /** progress dialog to show user that the backup is processing. */
         private ProgressDialog dialog;
@@ -943,7 +952,7 @@ public class EventActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected Long doInBackground(String... params) {
 
             ContentValues values = new ContentValues();
 
@@ -963,21 +972,21 @@ public class EventActivity extends AppCompatActivity {
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_NOTIFICATION_ID,getSelectedSmartNotifId());
             values.put(EventContract.EventEntry.COLUMN_NAME_EVENT_EMAIL,params[5]);
 
-            db.insert(
+            Long newId = db.insert(
                     EventContract.EventEntry.TABLE_NAME,
                     null,
                     values);
 
-            return null;
+            return newId;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(Long id) {
+            super.onPostExecute(id);
             dialog.dismiss();
             dbHelper.close();
             //Recupère les reminder pour programmer l'alarme
-            new GetReminderTask(activity).execute(getSelectedSmartNotifId());
+            new GetReminderTask(activity,id).execute(getSelectedSmartNotifId());
         }
     }
 
