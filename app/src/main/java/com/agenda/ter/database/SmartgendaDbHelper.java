@@ -11,8 +11,6 @@ import com.agenda.ter.smartgenda.NotificationActivity;
  * Created by Giyomm on 26/04/2016.
  */
 public class SmartgendaDbHelper extends SQLiteOpenHelper {
-    private String rappelTime;
-    // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "Smartgenda.db";
 
@@ -24,11 +22,6 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         db.execSQL(NotificationContract.NotificationEntry.getSqlCreateEntries());
         db.execSQL(ReminderContract.ReminderEntry.getSqlCreateEntries());
         db.execSQL(EventContract.EventEntry.getSqlCreateEntries());
-        // Insertion des deux types par defaut de notification
-       /* String notifNormale = "insert into notification values ('Normale',58,157,35,'')";
-        String notifFrequante = "insert into notification values ('Trés fréquante',255,0,0,'')";
-        db.execSQL(notifNormale);
-        db.execSQL(notifFrequante);*/
 
         ContentValues values1 = new ContentValues();
         values1.put(NotificationContract.NotificationEntry.COLUMN_NAME_NOTIFICATION_NAME,"Normale");
@@ -62,12 +55,9 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         String rappel6 = "insert into reminder values (8,3600000 ,0, "+newRowId2+")" ; // 1heure
 
         db.execSQL(rappel2);db.execSQL(rappel3);db.execSQL(rappel4);db.execSQL(rappel5);db.execSQL(rappel6);
-
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // This database is only a cache for offline data, so its upgrade policy is
-        // to simply to discard the data and start over
         db.execSQL(LocationContract.LocationEntry.getSqlDeleteEntries());
         db.execSQL(NotificationContract.NotificationEntry.getSqlDeleteEntries());
         db.execSQL(ReminderContract.ReminderEntry.getSqlDeleteEntries());

@@ -1,19 +1,13 @@
 package com.agenda.ter.smartgenda;
 
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -33,43 +27,48 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
 
 /**
- * Created by Giyomm on 27/04/2016.
+ * Classe du widget Calendrier personalisé, créée par SmartgendaTeam.
+ * @author Smartgenda Team
  */
 public class CalendarView extends LinearLayout
 {
-    // for logging
-    private static final String LOGTAG = "Calendar View";
-
-    // how many days to show, defaults to six weeks, 42 days
+    /**Nombre de jour par défaut à afficher dans la grille du calendrier*/
     private static final int DAYS_COUNT = 42;
 
-    // default date format
+    /**Format par défaut de la date Mois/Année*/
     private static final String DATE_FORMAT = "MMM yyyy";
 
-    // date format
+    /**Format de la date*/
     private String dateFormat;
 
-    // current displayed month
+    /**Mois courant à afficher*/
     private Calendar currentDate = Calendar.getInstance();
 
-    //event handling
+    /**Handler personalisé d'évènements*/
     private EventHandler eventHandler = null;
 
-    //hash set of events
+    /**Liste d'évènements à afficher sur le calendrier*/
     private ArrayList<Event> eventListSet = new ArrayList<>();
 
-    // internal components
+    /**layout permettant de regrouper le nom des jours de la semaine*/
     private LinearLayout header;
+
+    /**ImageView du bouton permettant de passer au mois précédent*/
     private ImageView btnPrev;
+
+    /**ImageView du bouton permettant de passer au mois suivant*/
     private ImageView btnNext;
+
+    /**TextView comportant le mois et l'année courramment affiché*/
     private TextView txtDate;
+
+    /**La GridView regroupant les jours du mois affiché*/
     private GridView grid;
 
-    // seasons' rainbow
+    /**Couleurs personalisées pour les saisons*/
     int[] rainbow = new int[] {
             R.color.summer,
             R.color.fall,
@@ -77,10 +76,10 @@ public class CalendarView extends LinearLayout
             R.color.spring
     };
 
-    // month-season association (northern hemisphere, sorry australia :)
+    /**Tableau des saisons des mois (basé sur le cycle de l'hémisphère nord)*/
     int[] monthSeason = new int[] {2, 2, 3, 3, 3, 0, 0, 0, 1, 1, 1, 2};
 
-    //The gesture detector of the grid
+    /**Le détector personnalisé permettant de détecter les interections de l'utilisateur avec la grille du calendrier*/
     private GestureDetectorCompat detector;
 
     public CalendarView(Context context)
@@ -101,7 +100,9 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * Load control xml layout
+     * Initialise la vue
+     * @param context Le contexte courant
+     * @param attrs La liste d'attribut de la vue
      */
     private void initControl(Context context, AttributeSet attrs)
     {
@@ -113,13 +114,16 @@ public class CalendarView extends LinearLayout
         assignClickHandlers();
     }
 
+    /**
+     * Charge le format de la vue à partir de la liste d'attributs passé en paramêtre
+     * @param attrs Liste des attributs de la vue
+     */
     private void loadDateFormat(AttributeSet attrs)
     {
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.CalendarView);
 
         try
         {
-            // try to load provided date format, and fallback to default otherwise
             dateFormat = ta.getString(R.styleable.CalendarView_dateFormat);
             if (dateFormat == null)
                 dateFormat = DATE_FORMAT;
@@ -129,6 +133,10 @@ public class CalendarView extends LinearLayout
             ta.recycle();
         }
     }
+
+    /**
+     * Instancie les composants graphiques de la vue
+     */
     private void assignUiElements()
     {
         // layout is inflated, assign local variables to components
@@ -139,6 +147,9 @@ public class CalendarView extends LinearLayout
         grid = (GridView)findViewById(R.id.calendar_grid);
     }
 
+    /**
+     * Assigne les différents handlers de pression aux composants de la vue ainsi que les méthodes à appeler en cas d'appuie
+     */
     private void assignClickHandlers()
     {
         txtDate.setOnLongClickListener(new OnLongClickListener()
@@ -205,7 +216,7 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * Display dates correctly in grid
+     * Met à jour le calendrier (Rafraichis la vue en métant à jour le mois et l'année à afficher ainsi que les jours possédant des évènements)
      */
     public void updateCalendar()
     {
@@ -242,6 +253,9 @@ public class CalendarView extends LinearLayout
     }
 
 
+    /**
+     * Adapter personnalisé de la grille du Calendrier
+     */
     private class CalendarAdapter extends ArrayAdapter<Date>
     {
         // for view inflation
@@ -351,7 +365,7 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * Assign event handler to be passed needed events
+     * Instance le event Handler en cas de création d'évènement
      */
     public void setEventHandler(EventHandler eventHandler)
     {
@@ -359,14 +373,16 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * This interface defines what events to be reported to
-     * the outside world
+     * Interface déclarant les méthodes à appeler par les élements de type EventHandler
      */
     public interface EventHandler
     {
         void onDayLongPress(Date date);
     }
 
+    /**
+     * Classe du détector personnalisé. Elle gère les intérections de swipe sur le Calendrier.
+     */
     private class CalendarGestureListener extends GestureDetector.SimpleOnGestureListener {
 
         private static final int SWIPE_THRESHOLD = 100;
@@ -401,18 +417,29 @@ public class CalendarView extends LinearLayout
         }
     }
 
+    /**
+     * Méthode calculant le premier jour de la semaine d'un Calendrier.
+     * @return Le nombre de cellules à déclarée "vide" avant d'afficher le premier jour du mois
+     */
     public int monthBeginningCell(){
         Calendar calendar = (Calendar)currentDate.clone();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         return calendar.get(Calendar.DAY_OF_WEEK) - 1;
     }
 
+    /**
+     * Le nombre de jour dans un mois
+     * @return Le nombre de jour dans un mois
+     */
     public int getMonthNumberOfDays(){
         Calendar calendar = (Calendar)currentDate.clone();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
     }
 
+    /**
+     * Methodé affichant un Calendrier Android après une pression longue sur le mois et l'année du calendrier. Permet à l'utilsiateur de choisir plus facilement une date.
+     */
     public void showDialogDateSelector(){
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog dpd = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {

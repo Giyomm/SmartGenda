@@ -2,10 +2,7 @@ package com.agenda.ter.smartgenda;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,10 +12,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Criteria;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -26,17 +20,14 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
-import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -44,7 +35,6 @@ import android.widget.Toast;
 
 import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.LocationContract;
-import com.agenda.ter.database.NotificationContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.Event;
 import com.agenda.ter.model.Location;
@@ -56,43 +46,57 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 
+/**
+ * @author Smartgenda Team
+ * Activité de la Page principale de l'application. Controller chargé de la gestion du Calendrier.
+ */
 public class CalendarActivity extends AppCompatActivity {
 
-    public final static String EXTRA_DESTINATION = "com.agenda.ter.smartgenda.DESTINATION";
+    /**Extra du jour sélectionné par l'utilisateur sur le calendrier */
     public final static String EXTRA_SELECTED_DATE = "com.agenda.ter.smartgenda.SELECTED_DATE";
     //false -> Mode ajout || true -> Mode edition
+
+    /**Extra représentant si le mode dans lequel la Page EventActivty est appelée*/
     public final static String EXTRA_EVENT_MODE = "com.agenda.ter.smartgenda.EVENT_MODE";
+
+    /**Extra de l'ID de l'évènement*/
     public final static String EXTRA_EVENT_ID = "com.agenda.ter.smartgenda.EVENT_ID";
 
-    //Alarm control extra
+    /**Extra de l'arlarm associé à l'évènement*/
     public static final String EXTRA_ALARM_RECEIVER_EVENT_ID = "com.agenda.ter.ALARM_EVENT_ID";
 
-    String _icon;
-
-    //The UI Calendar View
+    /**L'élèment Calendrier à afficher*/
     private com.agenda.ter.smartgenda.CalendarView mCalendarView;
 
-    //DATABASE
+    /**Instance de l'helper de la base de données*/
     private SmartgendaDbHelper dbHelper;
 
-    //Event list for a selected day
+    /**List des évènement prévu pour un jour*/
     private ArrayList<Event> eventDayList;
+
+    /**Liste des prochains évènements du mois. Seul le plus récent est affiché*/
     private ArrayList<Event> nextEventList;
 
-    //LES WIDGETS ****YASSINE AMIN****
-    TextView nextEventName, nextEventDate, nextEventDesc, nextEventHour, nextEventLocation, nextEventTemperature;
-    Button nextEventButtonMaps;
-    ImageView nextEventIcon;
-    Event minEvent;
-    double nextEventLatitude, nextEventLongitude;
+    /**TextView de l'encadré "Prochain évènement"*/
+    private TextView nextEventName, nextEventDate, nextEventHour, nextEventLocation, nextEventTemperature;
 
-    android.location.Location location_user;
+    /**Bouton de l'encadré "Prochin évènement" permettant d'afficher le trajet le lieu d'un évènement*/
+    private Button nextEventButtonMaps;
+
+    /**ImageView de l'encadré "Prochain évènement" dans lequel sera afficher l'imcon de la météo*/
+    private ImageView nextEventIcon;
+
+    /**Prochain évènement à venir*/
+    private Event minEvent;
+
+    /**Coordonnées GPS (Latitude, Longitude) du prochain évènement à venir*/
+    private double nextEventLatitude, nextEventLongitude;
+
+    /**Objet Location d'Android pour le calcul du Trajet à partir de la position de l'utilisateur*/
+    private android.location.Location location_user;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -171,6 +175,10 @@ public class CalendarActivity extends AppCompatActivity {
         new GetNextEventTask(this).execute();
     }
 
+    /**
+     * Vérifie que le GPS de l'appareil est en marche
+     * @return True si le GPS fonctionne, False sinon
+     */
     public Boolean checkGPSConnection(){
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         boolean gps;
@@ -184,6 +192,10 @@ public class CalendarActivity extends AppCompatActivity {
         return gps;
     }
 
+    /**
+     * Vérifie que la connection au réseau est disponible
+     * @return True si la connection est disponible, False sinon
+     */
     public Boolean checkNetworkConnection() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -191,32 +203,15 @@ public class CalendarActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
 
-    public Boolean checkNetworkAccess() {
-        try {
-            Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 www.google.com");
-            int returnVal = p1.waitFor();
-            boolean reachable = (returnVal == 0);
-            return reachable;
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return false;
-    }
-
+    /**
+     * Calcul le trajet de la position de l'utilsateur jusqu'au lieu de l'évènement
+     * @param v Le bouton qui appelle cette méthode
+     */
     public void findPath(View v) {
 
         try {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return;
             }
             location_user = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
@@ -233,6 +228,10 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Affiche une AlerteDialog après un appuie long sur une case du calendrier. Celle-ci affiche la date du jour sélectionné ainsi qu'une liste des évènements prévu pour ce jour.
+     * @param selectedDate La date du jour sélectionné
+     */
     private void showDayDialog(final Date selectedDate) {
         AlertDialog.Builder eventDialogBuilder = new AlertDialog.Builder(CalendarActivity.this);
         eventDialogBuilder.setTitle(new SimpleDateFormat("dd/MM/yyyy").format(selectedDate));
@@ -271,18 +270,30 @@ public class CalendarActivity extends AppCompatActivity {
         eventDialogBuilder.show();
     }
 
+    /**
+     * Permet d'afficher la Page EventActivity après avoir appuyé sur le bouton d'ajout de tâche en haut à droite de la page
+     * @param view Le bouton appellant cette méthode
+     */
     public void goToEventActivity(View view) {
         Intent intent = new Intent(this, EventActivity.class);
         intent.putExtra(EXTRA_EVENT_MODE,false);
         startActivity(intent);
     }
 
+    /**
+     * Ajoute un évènement dans la liste d'évènements de l'objet Calendrier
+     * @param e L'évènement à ajouter
+     */
     public void insertEventInListSet(Event e){
         ArrayList<Event> tmpHash = mCalendarView.getEventListSet();
         tmpHash.add(e);
         mCalendarView.setEventListSet(tmpHash);
     }
 
+    /**
+     * Remplis les champs textes de l'encadré "Prochain évènement" avec les informations du prochain évènement à venir
+     * @param eventList La liste des évènements à venir
+     */
     public void DisplayNextEvent(ArrayList<Event> eventList){
         long minDate = Long.MAX_VALUE;
         minEvent = new Event();
@@ -303,7 +314,6 @@ public class CalendarActivity extends AppCompatActivity {
             }
 
         }
-        Log.d("min date event",minEvent.getmEventName());
         nextEventName.setText(minEvent.getmEventName().toString());
         nextEventHour.setText(minEvent.getmEventTime().toString());
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -313,6 +323,9 @@ public class CalendarActivity extends AppCompatActivity {
         new GetLocationTask(this).execute(minEvent.getmEventLocationId()+"");
     }
 
+    /**
+     * Vide les champs texte de l'encadré "Prochan évènement" et affiche "Aucun évènement de prévu"
+     */
     public void resetNextEventView(){
         nextEventName.setText(R.string.calendar_next_event_no_event);
         nextEventHour.setText("");
@@ -323,6 +336,10 @@ public class CalendarActivity extends AppCompatActivity {
         nextEventIcon.setImageBitmap(null);
     }
 
+    /**
+     * Remplis les champs textes de l'encadré "Prochain évènement" avec les informations du lieu du prochain évènement à venir
+     * @param location Le lieu de prochain évènement
+     */
     public void fillNextEventLocation(Location location){
         nextEventLocation.setText(location.getmLocationName());
         nextEventTemperature.setText(location.getmMeteoTemperature()+" °C");
@@ -332,6 +349,10 @@ public class CalendarActivity extends AppCompatActivity {
     }
 
     /*LIST ADAPTER*/
+
+    /**
+     * Adapter personnalisé pour remplir la liste des évènements d'un jour
+     */
     public class EventListAdapter extends ArrayAdapter<Event>{
 
         public EventListAdapter(Context context, int resource, List<Event> items) {
@@ -396,6 +417,10 @@ public class CalendarActivity extends AppCompatActivity {
     }
 
     /*CLASSES AYNCHRONES POUR REQUÊTES HTTP et SQL*/
+
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête SQL permettant de récupérer un évènement à partir de son ID
+     */
     public class GetEventTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -474,6 +499,9 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête SQL permettant de supprimer un évènement à partir de son ID
+     */
     public class DeleteEventTask extends AsyncTask<String, Void, Void>{
 
         private ProgressDialog dialog;
@@ -511,6 +539,9 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête SQL permettant de récupérer tous les évènements
+     */
     public class GetAllEventTask extends AsyncTask<String, Void, Void>{
 
         private ProgressDialog dialog;
@@ -580,6 +611,9 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête SQL permettant de récupérer le prochain évènement à venir
+     */
     public class GetNextEventTask extends AsyncTask<String, Void, Void>{
 
         private ProgressDialog dialog;
@@ -649,6 +683,9 @@ public class CalendarActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête SQL permettant de récupérer un objet Location à partir de son ID
+     */
     public class GetLocationTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -704,10 +741,10 @@ public class CalendarActivity extends AppCompatActivity {
                 float _temperature = queryResult.getFloat(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_TEMPERATURE));
                 double _latitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LATITUDE));
                 double _longitude = queryResult.getDouble(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_LOCATION_LONGITUDE));
-                _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
+                String _icon = queryResult.getString(queryResult.getColumnIndex(LocationContract.LocationEntry.COLUMN_NAME_METEO_ICON));
 
 
-                location = new Location(_id,_name,_temperature,_latitude,_longitude,_icon);
+                location = new Location(_id,_name,_temperature,_latitude,_longitude, _icon);
             }
 
             queryResult.close();
@@ -723,6 +760,9 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Classe de la tâche asynchrone chargée d'exécuter la requête HTTP permettant de remplir l'ImageView avec l'url d'une image passée en paramêtre
+     */
     public class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
 
         private String url;

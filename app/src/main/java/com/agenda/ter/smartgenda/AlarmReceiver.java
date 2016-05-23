@@ -36,11 +36,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                         .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                         .setAutoCancel(true);
 
-        // Sets an ID for the notification
         int mNotificationId = (int) Calendar.getInstance().getTimeInMillis();
-        // Gets an instance of the NotificationManager service
         NotificationManager mNotifyMgr = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        // Builds the notification and issues it.
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 
