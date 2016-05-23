@@ -428,7 +428,7 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * Le nombre de jour dans un mois
+     * Le nombre de jours dans un mois
      * @return Le nombre de jour dans un mois
      */
     public int getMonthNumberOfDays(){
@@ -438,7 +438,7 @@ public class CalendarView extends LinearLayout
     }
 
     /**
-     * Methodé affichant un Calendrier Android après une pression longue sur le mois et l'année du calendrier. Permet à l'utilsiateur de choisir plus facilement une date.
+     * Methode affichant un Calendrier Android après une pression longue sur le mois et l'année du calendrier. Permet à l'utilsiateur de choisir plus facilement une date.
      */
     public void showDialogDateSelector(){
         Calendar calendar = Calendar.getInstance();

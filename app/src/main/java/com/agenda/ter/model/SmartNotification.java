@@ -1,21 +1,49 @@
 package com.agenda.ter.model;
 
-import android.graphics.Color;
-
-import java.util.ArrayList;
-
 /**
- * Created by Giyomm on 25/04/2016.
+ * @author Smartgenda Team
+ * Classe définissant un objet Notification
  */
 public class SmartNotification {
 
+    /**
+     * ID de la notification
+     */
     private int mSmartNotificationId;
+
+    /**
+     * Nom de la notification
+     */
     private String mSmartNotificationName;
+
+    /**
+     * Niveau de rouge de la notification
+     */
     private int  mSmartNotificationRed;
+
+    /**
+     * Niveau de vert de la notification
+     */
     private int  mSmartNotificationGreen;
+
+    /**
+     * Niveau de bleu de la notification
+     */
     private int  mSmartNotificationBlue;
+
+    /**
+     * Son délenché par la notification
+     */
     private String mSmartNotificationSound;
 
+    /**
+     * Constructeur
+     * @param mSmartNotificationId
+     * @param mSmartNotificationName
+     * @param mSmartNotificationRed
+     * @param mSmartNotificationGreen
+     * @param mSmartNotificationBlue
+     */
     public SmartNotification(int mSmartNotificationId, String mSmartNotificationName, int mSmartNotificationRed, int mSmartNotificationGreen, int mSmartNotificationBlue) {
         this.mSmartNotificationId = mSmartNotificationId;
         this.mSmartNotificationName = mSmartNotificationName;

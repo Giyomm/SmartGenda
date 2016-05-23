@@ -3,22 +3,51 @@ package com.agenda.ter.model;
 import java.util.Date;
 
 /**
- * Created by Giyomm on 25/04/2016.
+ * @author Smartgenda Team
+ * Classe définissant un Objet Evènement
  */
 public class Event {
 
+    /**ID de l'évènement*/
     private int mEventId;
+
+    /**Nom de l'évènement*/
     private String mEventName;
+
+    /**Email associé à l'évènement*/
     private String mEventEmail;
+
+    /**Date de l'évènement*/
     private Date mEventDate;
+
+    /**Heure de l'évènement*/
     private String mEventTime;
+
+    /**Description de l'évènement*/
     private String mEventDescription;
+
+    /**ID de l'objet Location de l'évènement*/
     private int mEventLocationId;
+
+    /**ID de l'objet Notification de l'évènement*/
     private int mEventNotificationId;
 
-    public Event() {
-    }
+    /**
+     * Constructeur par défaut
+     */
+    public Event(){}
 
+    /**
+     * Constructeur
+     * @param id
+     * @param mEventName
+     * @param mEventDate
+     * @param mEventTime
+     * @param mEventDescription
+     * @param mEventLocation
+     * @param mEventNotification
+     * @param mEventEmail
+     */
     public Event(int id, String mEventName, Date mEventDate, String mEventTime, String mEventDescription, int mEventLocation, int mEventNotification, String mEventEmail) {
         this.mEventId = id;
         this.mEventName = mEventName;

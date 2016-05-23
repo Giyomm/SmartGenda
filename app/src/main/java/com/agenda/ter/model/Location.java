@@ -1,16 +1,37 @@
 package com.agenda.ter.model;
 
 /**
- * Created by Giyomm on 25/04/2016.
+ * @author Smartgenda Team
+ * CLasse définissant un objet Lieu d'un évènement
  */
 public class Location {
+    /**ID du lieu*/
     private int mLocationId;
+
+    /**Nom du lieu*/
     private String mLocationName;
+
+    /**Température de la météo du lieu*/
     private float mMeteoTemperature;
+
+    /**Latitude du lieu*/
     private Double mLocationLatitude;
+
+    /**Longitude du lieu*/
     private Double mLocationLongitude;
+
+    /**Icon de la météo du lieu*/
     private String mMeteoIcon;
 
+    /**
+     * Constructeur
+     * @param mLocationId
+     * @param mLocationName
+     * @param mMeteoTemperature
+     * @param mLocationLatitude
+     * @param mLocationLongitude
+     * @param mMeteoIcon
+     */
     public Location(int mLocationId, String mLocationName, float mMeteoTemperature, Double mLocationLatitude, Double mLocationLongitude, String mMeteoIcon) {
         this.mLocationId = mLocationId;
         this.mLocationName = mLocationName;
@@ -18,12 +39,6 @@ public class Location {
         this.mLocationLatitude = mLocationLatitude;
         this.mLocationLongitude = mLocationLongitude;
         this.mMeteoIcon = mMeteoIcon;
-    }
-
-    public Location(String locationName, double latitudeEvent, double longitudeEvent) {
-        this.mLocationName = mLocationName;
-        this.mLocationLatitude = mLocationLatitude;
-        this.mLocationLongitude = mLocationLongitude;
     }
 
     public int getmLocationId() {

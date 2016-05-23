@@ -1,17 +1,29 @@
 package com.agenda.ter.model;
 
-import java.util.Date;
-
 /**
- * Created by Giyomm on 25/04/2016.
+ * @author Smartgenda Team
+ * Classe définissant un Objet Rappel
  */
 public class Reminder {
 
+    /**ID du Rappel*/
     private int mReminderId;
+
+    /**Heure du Rappel*/
     private int mReminderTime;
+
+    /**Le rappel affiche t'il la carte ou non*/
     private Boolean mReminderDisplayMap;
+
+    /**Notification à laquelle est associé le Rappel*/
     private int mReminderNotificationId;
 
+    /**
+     * Constructeur
+     * @param mReminderId
+     * @param mReminderTime
+     * @param mReminderNotificationId
+     */
     public Reminder(int mReminderId, int mReminderTime, int mReminderNotificationId) {
         this.mReminderId = mReminderId;
         this.mReminderTime = mReminderTime;
