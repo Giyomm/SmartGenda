@@ -16,10 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -55,21 +52,37 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author Smartgenda Team
+ * EventActivity sert à ajouter ou modifier un événement.
+ */
+
 public class EventActivity extends AppCompatActivity {
-    //MES***
+
+    /**
+     * idLocation : Identifiant d'un lieu
+     * iconPath : URL de l'icone météo
+     */
     private String idLocation;
     private String iconPath;
 
+    /**
+     * dpd : Un dialogue (pop-up) pour choisir une date
+     * nameEvent : Champ de texte pour saisir le nom de l'événement
+     * locationLatLngTextView : TextView pour afficher le lieu de l'événement
+     * desc_even : Champ de texte pour saisir la description de l'événement
+     * hour_picked_text_view : TextView affichant l'heure choisie
+     * meteoPicked : TextView affichant la météo récupérée
+     * iconMeteo : Image montrant l'état de la météo récupérée
+     */
     public DatePickerDialog dpd;
     private EditText nameEvent;
     private TextView locationLatLngTextView;
@@ -78,31 +91,43 @@ public class EventActivity extends AppCompatActivity {
     public static TextView datepickertxtview;
     private TextView meteoPicked;
     private ImageView iconMeteo;
-    private TextView locationName;
-    private EditText emailEditText;
+
+    /**
+     * notificationSpinner : Liste déroulante qui contient les notifications disponibles
+     * spinnerEmail : Liste déroulante qui contient les emails disponibles
+     */
     private Spinner notificationSpinner;
     private Spinner spinnerEmail;
 
+    /**
+     * meteoPbar : Une ProgressBar qui charge l'icone de la météo
+     * intentFromCalendar : Intent venant de la page CalendarActivity
+     * eventMode : 1 = ajouter un événement   ||  0 = modifier un événement
+     * mEditLocaion : Objet de type Location
+     */
     private ProgressBar meteoPbar;
-
-    Intent intentFromCalendar;
+    private Intent intentFromCalendar;
     private Boolean eventMode;
     private int editEventId;
     private Location mEditLocation;
 
-    private Location location;
-
-    //LAT ET LON DE L EVENEMENT
+    /**
+     * Latitude et longitude d'un événement.
+     */
     double latitudeEvent;
     double longitudeEvent;
-    String latitudeCity, longitudeCity;
+    private String latitudeCity, longitudeCity;
     public long dateSelected;
 
-    // HEURE ET MINUTE DU SYS
-    private int hourSys, minuteSys;
     private ArrayList<Reminder> reminderList;
 
-    //LES EXTRAS
+    /**
+     * EXTRA_LONGITUDE : extra contenant la longitude d'un lieu
+     * EXTRA_LATITUDE : extra contenant la latitude d'un lieu
+     * EXTRA_LOCALISATION_NAME : extra contant le nom d'un lieu
+     * EXTRA_NOTIFICATION_ALARM_NAME : extra contenant le nom d'une alarme
+     *EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME : extra contenant la date et l'heure d'une alarme
+     */
     public static final String EXTRA_LONGITUDE = "com.agenda.ter.LONG";
     public static final String EXTRA_LATITUDE = "com.agenda.ter.LAT";
     public static final String EXTRA_LOCALISATION_NAME = "com.agenda.ter.LOCATION_NAME";
@@ -110,13 +135,17 @@ public class EventActivity extends AppCompatActivity {
     public static final String EXTRA_NOTIFICATION_ALARM_DATE_AND_TIME = "com.agenda.ter.NOTIFICATION_ALARM_DATE_AND_TIME";
     public static final String EXTRA_NOTIFICATION_ALARM_LAST_ID = "com.agenda.ter.NOTIFICATION_ALARM_LAST_ID";
 
-    //DATABASE
+    /**
+     * dbHelper : permet la communication entre les activités et la base de données
+     * listNotif : Liste contenant les notification disponiles
+     */
     private SmartgendaDbHelper dbHelper;
-
     ArrayList<SmartNotification> listNotif = new ArrayList<>();
 
-    // POUR LES ALARMES
-    //OBJETS POUR LES ALARMES
+    /**
+     * alarmManager : Objet de type AlarmManager
+     * newFragment : Dialogue affichant l'heure
+     */
     AlarmManager alarmManager;
     DialogFragment newFragment;
 
@@ -142,7 +171,6 @@ public class EventActivity extends AppCompatActivity {
         meteoPbar = (ProgressBar)findViewById(R.id.event_weather_progressbar_id);
         meteoPicked = (TextView)findViewById(R.id.event_weatherpicked_textview_id);
         iconMeteo = (ImageView)findViewById(R.id.event_weather_icon_id);
-        locationName = (TextView) findViewById(R.id.lieu_event_textview_id);
         spinnerEmail = (Spinner)findViewById(R.id.event_spinner_email);
 
         reminderList = new ArrayList<>();
@@ -210,7 +238,10 @@ public class EventActivity extends AppCompatActivity {
 
     }
 
-    //Recuperer les emails du terminal et remplir le spinner avec les emails trouvés
+
+    /**
+     * Recuperer les emails du téléphone et remplir le spinner avec les emails trouvés
+     */
     public void SpinnerEmail(){
         Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
         Account[] accounts = AccountManager.get(this).getAccounts();
@@ -240,17 +271,21 @@ public class EventActivity extends AppCompatActivity {
         return Text;
     }
 
+    /**
+     * Récupere la latitude, la longitude, la météo depuis MapsActivity
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
             latitudeEvent = data.getDoubleExtra(EXTRA_LATITUDE,0);
             longitudeEvent = data.getDoubleExtra(EXTRA_LONGITUDE,0);
             String locationName = data.getStringExtra(EXTRA_LOCALISATION_NAME);
-            location = new Location(locationName,latitudeEvent,longitudeEvent);
             Log.d("LAT ET LONG","LAT: "+latitudeEvent+" LONG: "+longitudeEvent+ " NAME / "+locationName);
             try
             {
-
                 longitudeCity=String.valueOf(longitudeEvent);
                 latitudeCity=String.valueOf(latitudeEvent);
                 Log.d("LAT ET LON STRING", "LAT / "+latitudeCity+ " LONG / "+longitudeCity);
@@ -260,11 +295,13 @@ public class EventActivity extends AppCompatActivity {
                 new  MyAsyncTaskgetNews().execute(myurl);
 
             }catch (Exception ex){}
-
             locationLatLngTextView.setText(locationName+"");
         }
     }
 
+    /**
+     * Pop-up avertissant l'utilisateur s'il abondonne l'ajout ou la modification d'un événement
+     */
     @Override
     public void onBackPressed() {
         new AlertDialog.Builder(this)
@@ -279,6 +316,10 @@ public class EventActivity extends AppCompatActivity {
                 }).create().show();
     }
 
+    /**
+     * Permet de remplir la zone du prochain événement par l'événement le plus proche
+     * @param event
+     */
     private void fillEventActivityFields(Event event) {
         nameEvent.setText(event.getmEventName());
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -290,6 +331,10 @@ public class EventActivity extends AppCompatActivity {
         new GetSmartNotifByIDTask(this).execute(""+event.getmEventNotificationId());
     }
 
+    /**
+     * Permet de récuperer les informations du lieu de l'événement et l'afficher dans la zone du prochain événement
+     * @param loc
+     */
     private void fillLocationNameInEditMode(Location loc){
         locationLatLngTextView.setText(loc.getmLocationName());
         meteoPicked.setText(loc.getmMeteoTemperature()+"° C");
@@ -298,6 +343,10 @@ public class EventActivity extends AppCompatActivity {
         new ImageLoadTask(loc.getmMeteoIcon(), iconMeteo).execute();
     }
 
+    /**
+     * Récupere la notification séléctionnée par l'utilisateur
+     * @param notif
+     */
      void setNotificationSpinner(SmartNotification notif){
 
         for (SmartNotification sn : listNotif) {
@@ -306,20 +355,35 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Affiche DatePicker
+     * @param view
+     */
     public void showDatePicker(View view) {
         dpd.show();
     }
 
+    /**
+     * Permet de se diriger vers la page MapsActivity
+     * @param view
+     */
     public void goToMapsActivity(View view) {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivityForResult(intent,1);
     }
 
+    /**
+     * Permet de se diriger vers la page NotificationActivity
+     * @param view
+     */
     public void goToNotificationPage(View view) {
         Intent intent = new Intent(this, NotificationActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Controle la visibilité du ProgressBar
+     */
     public void changeProgressBarVisibility(){
         if(meteoPbar.getVisibility() == View.VISIBLE){
             meteoPbar.setVisibility(View.GONE);
@@ -335,17 +399,27 @@ public class EventActivity extends AppCompatActivity {
         notificationSpinner.setAdapter(adapter);
     }
 
+    /**
+     * Récupere l'identifiant d'une notification séléctionnée par l'utilisateur
+     * @return
+     */
     public String getSelectedSmartNotifId(){
         int id = ((SmartNotification)notificationSpinner.getSelectedItem()).getmSmartNotificationId();
         return String.valueOf(id);
     }
 
-    //AFFICHER LE TIME PICKER
+    /**
+     * Afficher le TimePicker
+     * @param v
+     */
     public void showTimePicker(View v){
         newFragment = new TimePickerFragment();
         newFragment.show(getFragmentManager(),"TimePicker");
     }
 
+    /**
+     * Classe permet l'instanciation et la récupération de l'heure choisie par l'utilisateur
+     */
     public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
         private int hourSys,minuteSys;
@@ -382,6 +456,11 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Controler s'il y a un champs obligatoire vide pendant l'ajout et la modification d'un événement
+     * @param v
+     * @throws ParseException
+     */
     public void saveEvent(View v) throws ParseException {
         if (nameEvent.getText().toString().equals("")) {
             Toast.makeText(this, "Entrez le nom de l'événement !", Toast.LENGTH_SHORT).show();
@@ -418,6 +497,10 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Programmer une alarme en fonction des rappels choisies
+     * @throws ParseException
+     */
     public void programAlarm(Long _id) throws ParseException {
         //Create the alarm manager
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -456,9 +539,9 @@ public class EventActivity extends AppCompatActivity {
         this.finish();
     }
 
-    /*CLASSES ASYNCHRONES POUR REQUÊTES HTTP et SQL*/
-
-    /*REQUÊTES GET*/
+    /**
+     * Récupere les informations de la météo du lieu de l'événement
+     */
     public class MyAsyncTaskgetNews extends AsyncTask<String, String, String> {
 
         private float temp;
@@ -477,10 +560,7 @@ public class EventActivity extends AppCompatActivity {
 
                 publishProgress(NewsData);
 
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-
-            }
+            } catch (Exception e) {}
             return null;
         }
         protected void onProgressUpdate(String... progress) {
@@ -488,8 +568,6 @@ public class EventActivity extends AppCompatActivity {
             try {
 
                 JSONObject root = new JSONObject(progress[0]);
-                //SimpleDateFormat sdf_JSON = new SimpleDateFormat("dd.MM.yyyy");
-                //String dateSelectedString = sdf_JSON.format(dateSelected);
                 String[] tab = datepickertxtview.getText().toString().split("/");
                 String dateSelectedString = tab[0]+"."+tab[1]+"."+tab[2];
 
@@ -532,6 +610,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Récupere l'icone de la météo
+     */
     public class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
 
         private String url;
@@ -568,6 +649,9 @@ public class EventActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Récupere un événement depuis la base de données
+     */
     public class GetEventTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -645,6 +729,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Récupere un lieu depuis la base de données
+     */
     public class GetLocationTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -719,6 +806,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Permet de récuperer toutes les notifications depuis la base de données
+     */
     public class GetSmartNotifTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -785,6 +875,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Permet de récuperer une notification par son ID
+     */
     public class GetSmartNotifByIDTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -855,6 +948,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Récupere les rappels d'une notification
+     */
     public class GetReminderTask extends AsyncTask<String, String, String> {
 
         private ProgressDialog dialog;
@@ -929,11 +1025,12 @@ public class EventActivity extends AppCompatActivity {
             }
         }
     }
-
     /*REQUÊTES INSERT*/
 
+    /**
+     * Inserer un événement dans la base de données
+     */
     public class InsertEventTask extends  AsyncTask<String, Long, Long>{
-
         /** progress dialog to show user that the backup is processing. */
         private ProgressDialog dialog;
         /** application context. */
@@ -990,6 +1087,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Inserer un lieu dans la base de données
+     */
     public class InsertLocationTask extends  AsyncTask<String, Void, Void>{
 
         /** progress dialog to show user that the backup is processing. */
@@ -1047,8 +1147,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
-    /*REQUÊTES UPDATE*/
-
+    /**
+     * Modifier un événement
+     */
     public class UpdateEventTask extends  AsyncTask<String, Void, Void>{
 
         /** progress dialog to show user that the backup is processing. */
@@ -1112,6 +1213,9 @@ public class EventActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Modifier le lieu d'un événement
+     */
     public class UpdateLocationTask extends  AsyncTask<String, Void, Void>{
 
         /** progress dialog to show user that the backup is processing. */

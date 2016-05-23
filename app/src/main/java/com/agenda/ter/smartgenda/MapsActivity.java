@@ -25,6 +25,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
+/**
+ * Activité permettant la recherche d'un lieu à l'aide de Google Map API
+ */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -34,10 +37,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private GoogleApiClient client;
 
-    //LAT ET LNG
+    /**
+     * latitude et longitude d'un lieu
+     */
     double latitude = 0, longitude = 0;;
 
-    // LES WIDGETS DE L'ACTIVITE MAPS
+    /**
+     * chercherBtn : bouton pour lancer la recherche
+     * saveLocationButon : bouton pour sauvegarder le lieu
+     * destinationEditText : champ de texte pour chercher un lieu
+     */
     Button chercherBtn, saveLocationButon;
     EditText destinationEditText;
 
@@ -66,13 +75,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -94,6 +96,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    /**
+     * Permet la recherche d'un lieu dans la carte
+     * @param v
+     */
     public void onSearch (View v){
         String location = destinationEditText.getText().toString();
         List<Address> addressList = null;
@@ -113,6 +119,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+    /**
+     * Récupere la latitude et longitude depuis un lieu
+     * @param place
+     */
     public void getLatLongFromPlace(String place) {
         try {
             Geocoder selected_place_geocoder = new Geocoder(this);
@@ -138,7 +148,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    //ENVOYER UNE LOCALISATION A EVENTSACTIVITY
+    /**
+     * Envoyer une localisation a EventActivity
+     * @param view
+     */
     public void saveLocation(View view) {
         if(destinationEditText.getText().toString()==null || destinationEditText.getText().toString().equals("")){
             Toast.makeText(this, "Entrez une destination !", Toast.LENGTH_SHORT).show();
