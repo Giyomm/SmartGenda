@@ -151,15 +151,12 @@ public class EventActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // enlever le focus ***MES
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event);
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
 
-        Log.d("NOTIF","ON CREATE");
         new GetSmartNotifTask(this).execute();
 
         desc_even = (EditText) findViewById(R.id.desc_even_edittextt_id);
@@ -258,6 +255,11 @@ public class EventActivity extends AppCompatActivity {
         spinnerEmail.setAdapter(arrayAdapter);
     }
 
+    /**
+     * Convertir un Stream à un String
+     * @param inputStream Objet de type InputStream
+     * @return
+     */
     public String Stream2String(InputStream inputStream) {
         BufferedReader bureader=new BufferedReader( new InputStreamReader(inputStream));
         String line ;
@@ -283,13 +285,10 @@ public class EventActivity extends AppCompatActivity {
             latitudeEvent = data.getDoubleExtra(EXTRA_LATITUDE,0);
             longitudeEvent = data.getDoubleExtra(EXTRA_LONGITUDE,0);
             String locationName = data.getStringExtra(EXTRA_LOCALISATION_NAME);
-            Log.d("LAT ET LONG","LAT: "+latitudeEvent+" LONG: "+longitudeEvent+ " NAME / "+locationName);
             try
             {
                 longitudeCity=String.valueOf(longitudeEvent);
                 latitudeCity=String.valueOf(latitudeEvent);
-                Log.d("LAT ET LON STRING", "LAT / "+latitudeCity+ " LONG / "+longitudeCity);
-                Log.d("LAT ET LON DOUBLE", "LAT / "+latitudeEvent+ " LONG / "+longitudeEvent);
                 String myurl = "http://www.prevision-meteo.ch/services/json/lat="+latitudeCity+"lng="+longitudeCity;
                 changeProgressBarVisibility();
                 new  MyAsyncTaskgetNews().execute(myurl);
@@ -318,7 +317,7 @@ public class EventActivity extends AppCompatActivity {
 
     /**
      * Permet de remplir la zone du prochain événement par l'événement le plus proche
-     * @param event
+     * @param event Objet de type événement
      */
     private void fillEventActivityFields(Event event) {
         nameEvent.setText(event.getmEventName());
@@ -333,7 +332,7 @@ public class EventActivity extends AppCompatActivity {
 
     /**
      * Permet de récuperer les informations du lieu de l'événement et l'afficher dans la zone du prochain événement
-     * @param loc
+     * @param loc Objet de type Location
      */
     private void fillLocationNameInEditMode(Location loc){
         locationLatLngTextView.setText(loc.getmLocationName());
@@ -345,7 +344,7 @@ public class EventActivity extends AppCompatActivity {
 
     /**
      * Récupere la notification séléctionnée par l'utilisateur
-     * @param notif
+     * @param notif Objet de type SmartNotification
      */
      void setNotificationSpinner(SmartNotification notif){
 
@@ -392,6 +391,10 @@ public class EventActivity extends AppCompatActivity {
             meteoPbar.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Remplir le spinner des notifications
+     * @param list : Liste contenant toutes les notifications
+     */
     public void populateSpinner(ArrayList<SmartNotification> list){
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<SmartNotification> adapter = new ArrayAdapter<SmartNotification>(this,R.layout.support_simple_spinner_dropdown_item,list);
@@ -401,7 +404,7 @@ public class EventActivity extends AppCompatActivity {
 
     /**
      * Récupere l'identifiant d'une notification séléctionnée par l'utilisateur
-     * @return
+     * @return l'identifiant de la notification séléctionnée
      */
     public String getSelectedSmartNotifId(){
         int id = ((SmartNotification)notificationSpinner.getSelectedItem()).getmSmartNotificationId();
@@ -507,7 +510,6 @@ public class EventActivity extends AppCompatActivity {
 
         //Set the date and time of the event
         String dateAndTime = datepickertxtview.getText().toString() +" "+hour_picked_text_view.getText().toString();
-        Log.d("DATE AND TIME",dateAndTime);
         Date eventDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(dateAndTime);
 
         //For each of the reminders of the event set the alarms
@@ -1025,7 +1027,6 @@ public class EventActivity extends AppCompatActivity {
             }
         }
     }
-    /*REQUÊTES INSERT*/
 
     /**
      * Inserer un événement dans la base de données

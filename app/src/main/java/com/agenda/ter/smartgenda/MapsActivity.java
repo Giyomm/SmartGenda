@@ -131,7 +131,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             address = selected_place_geocoder.getFromLocationName(place, 5);
 
             if (address == null) {
-                //d.dismiss();
             } else {
                 android.location.Address location = address.get(0);
                 double lat= location.getLatitude();
@@ -140,7 +139,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.addMarker(new MarkerOptions().position(latLng).title(""));
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                 latitude = lat ; longitude = lng;
-                Log.d("tag", "getLatLongFromPlace: " + latitude+ " , " +longitude);
             }
 
         } catch (Exception e) {
