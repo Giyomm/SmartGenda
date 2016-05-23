@@ -1,27 +1,16 @@
 package com.agenda.ter.smartgenda;
-
-import android.app.Activity;
-import android.app.DatePickerDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.ProgressDialog;
-import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.provider.Settings;
-import android.support.annotation.IntegerRes;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,57 +19,50 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
-
-import com.agenda.ter.database.EventContract;
 import com.agenda.ter.database.NotificationContract;
 import com.agenda.ter.database.ReminderContract;
 import com.agenda.ter.database.SmartgendaDbHelper;
 import com.agenda.ter.model.SmartNotification;
-
-import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
+/**
+ * @author SmartGenda Team
+ * NotificationActivity la calsse qui permet la personnalisation des notifications
+ */
 public class NotificationActivity extends AppCompatActivity {
 
-
-
+    /** La variable qui récupére le chemain de la sonnerie de la notification*/
     public static String chemin_son;
-    private DatePickerDialog dpd;
+    /** le dialogue ou on affiche toutes les sonnerie du terminal */
     private AlertDialog alertDialog;
+    /** La liste qui enregistre les rappels*/
     private ArrayList<String> listRappel;
+    /** une liste temporaire pour enregistre les rappels*/
     private ArrayList<String> listRappelTemp;
+    /** L'adapter pour l'affichage des rappels dans une ListView*/
     private MyCustomAdapter adapter;
-    private TextView txtInput;
+    /** Une ArrayList qui enregistre les sonneries*/
     private ArrayList<HashMap<String, String>> songsList;
-
-    private Spinner spinner;
+    /** Enregistre la couleur choisie dans le Spinner des couleur */
     private String selectedColor;
     private static String selectedRappel="" ;
     private int codeCouleurR=0;
     private int codeCouleurG=0;
     private int codeCouleurB=255;
+    /** La zone de texte pour le nom de la notification*/
     private EditText notificationNameEditText;
+    /** Enregistre le nom de la notification*/
     private String notifName;
-
+    /** L'instance du dbhelper de la base de données*/
     private SmartgendaDbHelper dbHelper;
-
+    /** Liste ou en récupére les notifications personnalisées*/
     public static ArrayList<SmartNotification> listNotifPerso ;
 
     @Override
@@ -88,8 +70,7 @@ public class NotificationActivity extends AppCompatActivity {
 
         dbHelper = new SmartgendaDbHelper(getApplicationContext());
 
-        // enlever le focus
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // Enlever le focus
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification);
@@ -147,11 +128,10 @@ public class NotificationActivity extends AppCompatActivity {
 
     }
 
-    public void showDatePicker(View view) {
-        dpd.show();
-    }
-
-
+    /**
+     * La méthode qui enregistre une notification dans la base de données
+     * @param view
+     */
     public void saveNotification(View view){
         notifName = notificationNameEditText.getText().toString();
         if(notifName .equals("") || notifName==null ) {Toast.makeText(getApplicationContext(), "Entrer le nom de la notification !!", Toast.LENGTH_SHORT).show(); return;}
@@ -167,12 +147,19 @@ public class NotificationActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Permet de fermer la page des notifications
+     * @param view
+     */
     public void CloseSonWindow(View view) {
 
         alertDialog.dismiss();
     }
 
-
+    /**
+     * Ajoute un rappel dans la liste des rappels
+     * @param v
+     */
     public void AddToList(View v) {
 
         String newItem = selectedRappel;
@@ -184,9 +171,12 @@ public class NotificationActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(), "Rappel avant : "+newItem, Toast.LENGTH_SHORT).show();
         }
-
     }
 
+    /**
+     * Récupére et affiche les sonnerie du terminal
+     * @param view
+     */
     public void browseAudioFiles(View view) {
 
         ArrayList<String> namess=new ArrayList<>();
@@ -275,6 +265,10 @@ public class NotificationActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *
+     * Récupére le chemin de la sonnerie choisie dans la liste des sonneries
+     */
     public void GetSon(View v){
 
         TextView sonPath = (TextView) findViewById(R.id.textView_sonPath_id);
@@ -334,8 +328,7 @@ public class NotificationActivity extends AppCompatActivity {
         deleteBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //do something
-                list.remove(position); //or some other task
+                list.remove(position);
                 notifyDataSetChanged();
             }
         });
@@ -343,7 +336,9 @@ public class NotificationActivity extends AppCompatActivity {
         return view;
     }
 }
-
+    /**
+     * Classe qui permet l'insertion d'une notification dans la base de données
+     */
     public class InsertNotificationTask extends AsyncTask<String, Void, Void> {
 
         long newRowId;
@@ -403,12 +398,13 @@ public class NotificationActivity extends AppCompatActivity {
             for(int i=0 ; i<listRappelTemp.size() ; i++){
                 String rappel = listRappelTemp.get(i);
                 String[] rap = rappel.split(" ");
-                Log.d("Element ",Integer.valueOf(rap[0])*3600000+"");
                 new InsertReminderTask(NotificationActivity.this).execute(String.valueOf(Integer.valueOf(rap[0])*3600000),String.valueOf(newRowId));
             }
         }
     }
-
+    /**
+     * Classe qui permet l'insertion des rappels dans la base de données
+     */
     public class InsertReminderTask extends AsyncTask<String, Void, Void> {
 
         /** progress dialog to show user that the backup is processing. */

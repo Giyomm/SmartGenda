@@ -13,8 +13,15 @@ import java.util.Calendar;
 
 /**
  * Created by Giyomm on 12/05/2016.
+ *La classe qui permet de programmer une notification a un moment précis
  */
 public class AlarmReceiver extends BroadcastReceiver {
+
+    /**
+     * La methode qui déclenche une notfication pour chaque rappel d'une notification
+     * @param context Le contexte actuel de l'appmication
+     * @param intent les paramétres transmis a l'AlarmReceiver
+     */
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -40,7 +47,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         NotificationManager mNotifyMgr = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
-
     public void sendEmail(Context context){
         Intent i = new Intent(Intent.ACTION_SEND);
         i.setType("message/rfc822");

@@ -8,15 +8,27 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.agenda.ter.smartgenda.NotificationActivity;
 
 /**
- * Created by Giyomm on 26/04/2016.
+ * @author SmartGendaTeam
+ * Une classe d'aide pour gérer la création de bases de données et la gestion des versions.
  */
 public class SmartgendaDbHelper extends SQLiteOpenHelper {
+    /**
+     *La version de la base de données
+     */
     public static final int DATABASE_VERSION = 4;
+
+    /**
+     *Le nom de la base de données
+     */
     public static final String DATABASE_NAME = "Smartgenda.db";
 
     public SmartgendaDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+    /**
+     * La premiére méthode exécuté lors de la création de la base de données
+     * @param db
+     */
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(LocationContract.LocationEntry.getSqlCreateEntries());
         db.execSQL(NotificationContract.NotificationEntry.getSqlCreateEntries());
@@ -57,6 +69,12 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         db.execSQL(rappel2);db.execSQL(rappel3);db.execSQL(rappel4);db.execSQL(rappel5);db.execSQL(rappel6);
     }
 
+    /**
+     * Cette méthode est éxécuté lors d'une modification dans la base de données
+     * @param db
+     * @param oldVersion
+     * @param newVersion
+     */
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(LocationContract.LocationEntry.getSqlDeleteEntries());
         db.execSQL(NotificationContract.NotificationEntry.getSqlDeleteEntries());
@@ -64,6 +82,13 @@ public class SmartgendaDbHelper extends SQLiteOpenHelper {
         db.execSQL(EventContract.EventEntry.getSqlDeleteEntries());
         onCreate(db);
     }
+
+    /**
+     * La methode est appelé quand on réduit la base de données
+     * @param db
+     * @param oldVersion
+     * @param newVersion
+     */
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
